@@ -1,0 +1,10 @@
+storage: "./storage"
+
+rest:
+  listen: "127.0.0.1:8443"
+  prefix: "api"
+
+peer_2_peer:
+  trusted_peers: []
+
+
