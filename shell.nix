@@ -1,10 +1,13 @@
 let
   myPkgs = import ./.;
-  pkgs = myPkgs.iohkNix.rust-packages.pkgs;
+  rustPkgs = myPkgs.iohkNix.rust-packages.pkgs;
+  pkgs = myPkgs.iohkNix.pkgs;
+  baseConfig = import ./configs/base-default-config.nix;
+  exempleConfigJson = builtins.toJSON baseConfig;
 in pkgs.stdenv.mkDerivation {
   name = "jormungandr-demo";
   buildInputs = with pkgs; [
-    jormungandr
+    rustPkgs.jormungandr remarshal
   ];
   shellHook = ''
   echo "Jormungandr Demo" \
@@ -32,8 +35,12 @@ in pkgs.stdenv.mkDerivation {
     jcli genesis init > secrets/genesis.yaml
     Encode genesis block:
     jcli genesis encode --input secrets/genesis.yaml --output secrets/block-0.bin
-    Create node config:
-    TBD
+    Create node config, example:
+  EOF
+  json2yaml << 'EOF'
+    ${exempleConfigJson}
+  EOF
+  cat << 'EOF'
     Create secret:
     TBD
     Start jormungandr:
