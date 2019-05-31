@@ -5,6 +5,7 @@ in pkgs.stdenv.mkDerivation {
   name = "jormungandr-demo";
   buildInputs = with pkgs; [
     jormungandr
+    myPkgs.setupStakePool
   ];
   shellHook = ''
   echo "Jormungandr Demo" \
@@ -17,15 +18,7 @@ in pkgs.stdenv.mkDerivation {
     Create Wallet Delegation:
     TBD
     Create Staking Pool KES Keys and Stake Pool Certificate:
-    jcli key generate --type=Ed25519Extended | tee secrets/stake.key | jcli key to-public > secrets/stake.pub
-    jcli key generate --type=Curve25519_2HashDH | tee secrets/stake_pool_vrf.key | jcli key to-public > secrets/stake_pool_vrf.pub
-    jcli key generate --type=SumEd25519_12 | tee secrets/stake_pool_kes.key | jcli key to-public > secrets/stake_pool_kes.pub
-    jcli certificate new stake-pool-registration \
-          --kes-key $(cat secrets/stake_pool_kes.pub) \
-          --vrf-key $(cat secrets/stake_pool_vrf.pub) \
-          --serial 1010101010 > secrets/stake_pool.cert
-    cat secrets/stake_pool.cert | jcli certificate sign secrets/stake.key | tee secrets/stake_pool.cert
-    cat secrets/stake_pool.cert | jcli certificate get-stake-pool-id | tee secrets/stake_pool.id
+    setup-stake-pool
     Create Single address in staking key (for funds):
     jcli address single $(cat secrets/stake.key) > secrets/stake.address
     Generate genesis and edit with initial certs and stake:
