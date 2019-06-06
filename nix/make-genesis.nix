@@ -1,49 +1,42 @@
-{
-  stdenv
-, startDate ? 0
-, slotsPerEpoch ? 5
-, slotDuration ? 15
+{ consensusMode
+, consensusLeaderIds
+, initialCerts
+, faucets
+, startDate ? 1550822014
+, isProduction ? false
+, slotsPerEpoch ? 60
+, slotDuration ? 10
 , epochStabilityDepth ? 10
-, bftSlotsRatio ? 0.220
-, consensusGenesisPraosActiveSlotCoeff ? 0.22
+, bftSlotsRatio ? if (consensusMode == "bft") then 0 else 0.1
+, consensusGenesisPraosActiveSlotCoeff ? 0.1
 , maxTx ? 255
 , allowAccountCreation ? true
-, linearFeeConstant ? 2
-, linearFeeCoefficient ? 1
-, linearFeeCert ? 4
+, linearFeeConstant ? 10
+, linearFeeCoefficient ? 0
+, linearFeeCert ? 0
 , kesUpdateSpeed ? 43200 # 12 hours
-, jormungandr
-, isProduction ? true
+, ...
 }:
-
-let
-  genesisAttrs = {
-    blockchain_configuration = {
-      block0_date = startDate;
-      discrimination = if isProduction then "production" else "test";
-      block0_genesis = "genesis";
-      slots_per_epoch = slotsPerEpoch;
-      slot_duration = slotDuration;
-      epoch_stability_depth = epochStabilityDepth;
-      consensus_leader_ids = [];
-      bft_slots_ratio = bftSlotsRatio;
-      consensus_genesis_praos_active_slot_coeff = consensusGenesisPraosActiveSlotCoeff;
-      max_number_of_transactions_per_block = maxTx;
-      allow_account_creation = allowAccountCreation;
-      linear_fee = {
-        constant = linearFeeConstant;
-        coefficient = linearFeeCoefficient;
-        certificate = linearFeeCert;
-      };
-      kes_update_speed = kesUpdateSpeed;
-
+builtins.toJSON {
+  blockchain_configuration = {
+    block0_date = startDate;
+    discrimination = if isProduction then "production" else "test";
+    block0_consensus = consensusMode;
+    slots_per_epoch = slotsPerEpoch;
+    slot_duration = slotDuration;
+    epoch_stability_depth = epochStabilityDepth;
+    consensus_leader_ids = consensusLeaderIds;
+    bft_slots_ratio = bftSlotsRatio;
+    consensus_genesis_praos_active_slot_coeff = consensusGenesisPraosActiveSlotCoeff;
+    max_number_of_transactions_per_block = maxTx;
+    allow_account_creation = allowAccountCreation;
+    linear_fee = {
+      constant = linearFeeConstant;
+      coefficient = linearFeeCoefficient;
+      certificate = linearFeeCert;
     };
-    initial_funds = [
-    ];
-    initial_certs = [
-    ];
-
+    kes_update_speed = kesUpdateSpeed;
   };
-
-in
-builtins.toFile "genesis.yaml" (builtins.toJSON genesisAttrs)
+  initial_funds = faucets;
+  initial_certs = initialCerts;
+}

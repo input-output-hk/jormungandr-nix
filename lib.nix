@@ -12,9 +12,11 @@ let
     in builtins.fetchTarball {
       url = "${spec.url}/archive/${spec.rev}.tar.gz";
       inherit (spec) sha256;
-    }) {};
-  pkgs = iohkNix.rust-packages.pkgs;
+    }) { nixpkgsJsonOverride = ./nix/nixpkgs-src.json; };
+  pkgs = iohkNix.pkgs;
+  rustPkgs = iohkNix.rust-packages.pkgs;
 in
 {
-  inherit iohkNix pkgs;
+  inherit iohkNix pkgs rustPkgs;
+  inherit (pkgs) lib;
 }

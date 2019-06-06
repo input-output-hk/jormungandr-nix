@@ -1,14 +1,11 @@
+{...}@args:
 # Imports the iohk-nix library.
 # The version can be overridden for debugging purposes by setting
 # NIX_PATH=iohk_nix=/path/to/iohk-nix
+with import ./lib.nix;
 let
-  localLib = import ./lib.nix;
-  pkgs = localLib.pkgs;
-  jormungandr = pkgs.jormungandr;
-  setupStakePool = pkgs.callPackage ./nix/setup-stake-pool.nix {};
-  makeGenesisFile = pkgs.callPackage ./nix/make-genesis.nix {};
+  setupStakePool = rustPkgs.callPackage ./nix/setup-stake-pool.nix args;
 in
 {
-  inherit jormungandr setupStakePool makeGenesisFile;
-  inherit (localLib) iohkNix;
+  inherit iohkNix jormungandr setupStakePool block0 config;
 }

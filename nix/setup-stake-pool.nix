@@ -1,7 +1,8 @@
 {
   stdenv,
   writeScriptBin,
-  jormungandr
+  jormungandr,
+  ...
 }:
 
 writeScriptBin "setup-stake-pool" ''
