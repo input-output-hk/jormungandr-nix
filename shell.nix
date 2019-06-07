@@ -75,6 +75,17 @@ let
     ${xdg_utils}/bin/xdg-open ${archiveFileName}
   '');
 
+  runCmd = "jormungandr --genesis-block block-0.bin --config config.yaml " + (concatMapStrings (i: 
+      "--secret secrets/secret_pool_${toString i}.yaml "
+    ) (range 1 (numberOfStakePools))) + (if (consensusMode == "bft") then (concatMapStrings (i: 
+      "--secret secrets/secret_bft_stake_${toString i}.yaml "
+    ) (range 1 (builtins.length faucetAmounts))) else "");
+
+  run-jormungandr = with pkgs; writeScriptBin "run-jormungandr" (''
+    #!${stdenv.shell}
+    ${runCmd}
+  '');
+
 in pkgs.stdenv.mkDerivation {
   name = "jormungandr-demo";
   
@@ -82,6 +93,7 @@ in pkgs.stdenv.mkDerivation {
     rustPkgs.jormungandr
     gen-config
     open-archive
+    run-jormungandr
   ];
   shellHook = ''
     mkdir -p "${baseDir}"
