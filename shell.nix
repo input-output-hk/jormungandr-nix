@@ -44,7 +44,9 @@ let
   };
   genesisJson = (pkgs.callPackage ./nix/make-genesis.nix (genesisGeneratedArgs // args));
 
-  baseDir = rootDir + "/jormungandr-" + (builtins.hashString "md5" (builtins.toJSON args));
+  baseDirName = "jormungandr-" + (builtins.hashString "md5" (builtins.toJSON args));
+  baseDir = rootDir + "/" + baseDirName;
+  archiveFileName = baseDirName + "-config.zip";
 
   configGeneratedArgs = { 
     inherit topicsOfInterests;
@@ -63,49 +65,30 @@ let
   };
 
   gen-config = pkgs.callPackage ./nix/generate-config.nix (args // {
-    inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders consensusMode;
+    inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders consensusMode archiveFileName;
     numberOfFaucets = builtins.length faucetAmounts;
     inherit (rustPkgs) jormungandr;
   });
-  myPkgs = import ./. args;
+
+  open-archive = with pkgs; writeScriptBin "open-config-archive" (''
+    #!${stdenv.shell}
+    ${xdg_utils}/bin/xdg-open ${archiveFileName}
+  '');
+
 in pkgs.stdenv.mkDerivation {
   name = "jormungandr-demo";
   
   buildInputs = with pkgs; [
-    remarshal
     rustPkgs.jormungandr
     gen-config
-    myPkgs.setupStakePool
+    open-archive
   ];
   shellHook = ''
-  mkdir -p "${baseDir}"
-  cd "${baseDir}"
- 
-    echo "Jormungandr Demo" \
-  | ${pkgs.figlet}/bin/figlet -f banner -c \
-  | ${pkgs.lolcat}/bin/lolcat
-  cat << 'EOF'
-  Instructions for Starting one-node genesis cluster:
-    Create Wallet:
-    TBD
-    Create Wallet Delegation:
-    TBD
-    Create Staking Pool KES Keys and Stake Pool Certificate:
-    setup-stake-pool
-    Create Single address in staking key (for funds):
-    jcli address single $(cat secrets/stake.key) > secrets/stake.address
-    Generate genesis and edit with initial certs and stake:
-    jcli genesis init > secrets/genesis.yaml
-    Encode genesis block:
-    jcli genesis encode --input secrets/genesis.yaml --output secrets/block-0.bin
-    Create node config:
-    TBD
-    Create secret:
-    TBD
-    Start jormungandr:
-    jormungandr --genesis-block secrets/block-0.bin \
-                --config config.yaml \
-                --secret secrets/secret.yaml
-  EOF
+    mkdir -p "${baseDir}"
+    cd "${baseDir}"
+
+    if [ ! -f "${archiveFileName}" ]; then
+      generate-config
+    fi
   '';
 }

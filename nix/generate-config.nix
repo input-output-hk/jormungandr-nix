@@ -12,9 +12,10 @@
 , genesisSecretJson
 , bftSecretJson
 , baseDir
+, archiveFileName
 , jormungandr
 , remarshal
-, archiver
+, zip
 , ...
 }:
 
@@ -23,7 +24,7 @@ with lib; writeScriptBin "generate-config" (''
 
   set -euo pipefail
   
-  export PATH=${stdenv.lib.makeBinPath [ jormungandr remarshal ]}:$PATH
+  export PATH=${stdenv.lib.makeBinPath [ jormungandr remarshal zip ]}:$PATH
 
   GENESIS_JSON=$(cat <<'EOF'
     ${genesisJson}
@@ -107,6 +108,10 @@ with lib; writeScriptBin "generate-config" (''
     ${configJson}
   EOF
   echo "$GENESIS_JSON" | json2yaml > genesis.yaml
-
   echo "$GENESIS_JSON" | jcli genesis encode --output block-0.bin
+
+  if [ -f "${archiveFileName}" ]; then
+    mv "${archiveFileName}" "${archiveFileName}.bak"
+  fi
+  zip -q -r "${archiveFileName}" block-0.bin config.yaml genesis.yaml secrets *cert
 '')
