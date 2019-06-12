@@ -7,7 +7,7 @@
 , slots_per_epoch ? 60
 , slot_duration ? 10
 , epoch_stability_depth ? 10
-, bft_slots_ratio ? if (block0_consensus == "bft") then 0 else 0.1
+, bft_slots_ratio ? 0
 , consensus_genesis_praos_active_slot_coeff ? 0.1
 , max_number_of_transactions_per_block ? 255
 , allow_account_creation ? true

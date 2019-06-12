@@ -62,6 +62,7 @@ with lib; writeScriptBin "generate-config" (''
   echo $LEADER_SK_${i} > secrets/leader_${i}_key.sk
   LEADER_PK_${i}=$(echo $LEADER_SK_${i} | jcli key to-public)
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/LEADER_PK_${i}/$LEADER_PK_${i}/g" )
+  echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$LEADER_SK_${i}/g" | json2yaml > secrets/secret_bft_leader_${i}.yaml
   
   '') (range 1 numberOfLeaders)) + ''
 

@@ -80,7 +80,9 @@ let
       "--secret secrets/secret_pool_${toString i}.yaml "
     ) (range 1 (numberOfStakePools))) + (if (block0_consensus == "bft") then (concatMapStrings (i: 
       "--secret secrets/secret_bft_stake_${toString i}.yaml "
-    ) (range 1 (builtins.length faucetAmounts))) else "");
+    ) (range 1 (builtins.length faucetAmounts))) else "")+ (concatMapStrings (i: 
+      "--secret secrets/secret_bft_leader_${toString i}.yaml "
+    ) (range 1 (numberOfLeaders)));
 
   run-jormungandr = with pkgs; writeScriptBin "run-jormungandr" (''
     #!${stdenv.shell}

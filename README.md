@@ -33,7 +33,7 @@ nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
 | `--arg slots_per_epoch` | `60` | Number of slots in each epoch |
 | `--arg slot_duration` | `10` | The slot duration, in seconds, is the time between the creation of 2 blocks |
 | `--arg epoch_stability_depth` | `10` | The number of blocks (*10) per epoch |
-| `--arg bft_slots_ratio` | `0` if `bft`, `0.1` if `genesis` | Genesis praos parameter D |
+| `--arg bft_slots_ratio` | `0` | Genesis praos parameter D |
 | `--arg consensus_genesis_praos_active_slot_coeff` | `0.1` | Genesis praos active slot coefficient. Determines minimum stake required to try becoming slot leader, must be in range (0,1] |
 | `--arg max_number_of_transactions_per_block` | `255` | This is the max number of messages allowed in a given Block |
 | `--arg allow_account_creation` | `true` | Allow the creation of accounts from the output of a transaction. If set to false, account based wallet will not be created without publishing a stake certificate. if set to true, simply adding the account in the output of a transaction will allow the account to exist in the blockchain. |
