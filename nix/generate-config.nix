@@ -1,7 +1,7 @@
 { stdenv
 , lib
 , writeScriptBin
-, consensusMode
+, block0_consensus
 , isProduction ? false
 , addrTypeFlag ? if (isProduction) then "" else "--testing"
 , numberOfFaucets
@@ -49,7 +49,7 @@ with lib; writeScriptBin "generate-config" (''
   FAUCET_PK_${i}=$(echo $FAUCET_SK_${i} | jcli key to-public)
   echo $FAUCET_SK_${i} > secrets/stake_${i}_key.sk
   FAUCET_ADDR_${i}=$(jcli address account $FAUCET_PK_${i} ${addrTypeFlag})
-  '' + (if (consensusMode == "bft") then ''
+  '' + (if (block0_consensus == "bft") then ''
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$FAUCET_SK_${i}/g" | json2yaml > secrets/secret_bft_stake_${i}.yaml
   '' else "") + ''
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/FAUCET_ADDR_${i}/$FAUCET_ADDR_${toString i}/g" )
