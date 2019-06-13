@@ -97,10 +97,21 @@ in pkgs.stdenv.mkDerivation {
     gen-config
     # open-archive
     run-jormungandr
+    arionPkgs.arion
+    #docker
   ];
   shellHook = ''
     mkdir -p "${baseDir}"
     cd "${baseDir}"
+    mkdir -p docker
+    if [ -L nixos ]; then
+      rm nixos
+    fi
+    ln -sf "${./.}/nixos" nixos
+    ln -sf "${./.}/docker/arion-pkgs.nix" docker/arion-pkgs.nix
+    if [ ! -f ./docker/arion-compose.nix ]; then
+      cp "${./.}docker/arion-compose.nix" docker/
+    fi
 
     if [ ! -f "${archiveFileName}" ]; then
       generate-config

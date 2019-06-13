@@ -21,7 +21,7 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = (import ./lib.nix).rustPkgs.jormungandr;
+        default = (import ../lib.nix).rustPkgs.jormungandr;
         defaultText = "rustPkgs.jormungandr";
         description = ''
           The jormungandr package that should be used.

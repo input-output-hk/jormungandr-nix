@@ -13,10 +13,16 @@ let
       url = "${spec.url}/archive/${spec.rev}.tar.gz";
       inherit (spec) sha256;
     }) { nixpkgsJsonOverride = ./nix/nixpkgs-src.json; };
+  arionPkgs = import (let
+      spec = builtins.fromJSON (builtins.readFile ./nix/arion-src.json);
+    in builtins.fetchTarball {
+      url = "${spec.url}/archive/${spec.rev}.tar.gz";
+      inherit (spec) sha256;
+    }) {};
   pkgs = iohkNix.pkgs;
   rustPkgs = iohkNix.rust-packages.pkgs;
 in
 {
-  inherit iohkNix pkgs rustPkgs;
+  inherit iohkNix pkgs rustPkgs arionPkgs;
   inherit (pkgs) lib;
 }
