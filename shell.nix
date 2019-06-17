@@ -24,6 +24,8 @@
 , rest_prefix ? "api"
 , logger_verbosity ? null
 , logger_format ? null
+, logger_output ? null
+, logger_backend ? null
 , public_address ? null
 , trusted_peers ? null
 , topics_of_interests ? if (numberOfStakePools > 0)  
@@ -110,7 +112,7 @@ in pkgs.stdenv.mkDerivation {
     ln -sf "${./.}/nixos" nixos
     ln -sf "${./.}/docker/arion-pkgs.nix" docker/arion-pkgs.nix
     if [ ! -f ./docker/arion-compose.nix ]; then
-      cp "${./.}docker/arion-compose.nix" docker/
+      cp "${./.}/docker/arion-compose.nix" docker/
     fi
 
     if [ ! -f "${archiveFileName}" ]; then

@@ -45,7 +45,9 @@ nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
 | `--argstr rest_listen` | `127.0.0.1:8443` | listen address of the rest endpoint |
 | `--argstr rest_prefix` | `api` | rest api prefix |
 | `--arg logger_verbosity` | `1` | logger verbosity. 0: warning, 1: info, 2: debug, 3 and above: trace. |
-| `--argstr logger_format` | `json` | log output format - `plain` or `json`. |
+| `--argstr logger_format` | `plain` | log output format - `plain` or `json`. |
+| `--argstr logger_output` | `stderr` | log output - `stderr`, `gelf` (graylog), `syslog` (unix only) or `journald` |
+| `--argstr logger_backend` | `monitoring.stakepool.cardano-testnet.iohkdev.io:12201` if `gelf` | Graylog server to ouput the log to, default to iohk cardano-testnet graylog server (for debug purposes). |
 | `--argstr public_address` | `/ip4/127.0.0.1/tcp/8299` |  the address to listen from and accept connection from. This is the public address that will be distributed to other peers of the network that may find interest into participating to the blockchain dissemination with the node. |
 | `--argstr  trusted_peers` | none | comma seperated list of of nodes to connect to in order to bootstrap the p2p topology (and bootstrap our local blockchain). Eg. `/ip4/104.24.28.11/tcp/8299,/ip4/104.24.29.11/tcp/8299` |
 | `--argstr topics_of_interests` | `messages=high,blocks=high` if pools are registered, `messages=low,blocks=normal` otherwise | the different topics (comma separated) we are interested to hear about: - messages: notify other peers this node is interested about Transactions, typical setting for a non mining node: "low", for a stakepool: "high"; - blocks: notify other peers this node is interested about new Blocs, typical settings for a non mining node: "normal", for a stakepool: "high"; |
