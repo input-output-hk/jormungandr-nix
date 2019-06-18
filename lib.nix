@@ -21,8 +21,10 @@ let
     }) {};
   pkgs = iohkNix.pkgs;
   rustPkgs = iohkNix.rust-packages.pkgs;
+  makeSnap = pkgs.callPackage ./nix/make-snap.nix {};
+  snapcraft = pkgs.callPackage ./nix/snapcraft.nix {};
 in
 {
-  inherit iohkNix pkgs rustPkgs arionPkgs;
+  inherit iohkNix pkgs rustPkgs arionPkgs makeSnap snapcraft;
   inherit (pkgs) lib;
 }
