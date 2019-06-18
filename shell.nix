@@ -1,4 +1,7 @@
-{ block0_consensus ? "genesis"
+with import ./lib.nix; with lib;
+{ packageName ? "jormungandrMaster"
+, package ? rustPkgs."${packageName}"
+, block0_consensus ? "genesis"
 , color ? true
 , faucetAmounts ? [ 1000000000 ]
 , numberOfStakePools ? if (block0_consensus == "bft") then 0 else (builtins.length faucetAmounts)
@@ -26,13 +29,13 @@
 , logger_format ? null
 , logger_output ? null
 , logger_backend ? null
+, logs_id ? null
 , public_address ? null
 , trusted_peers ? null
 , topics_of_interests ? if (numberOfStakePools > 0)  
     then "messages=high,blocks=high" 
     else "messages=low,blocks=normal"
 }@args:
-with import ./lib.nix; with lib;
 let
   
   genesisGeneratedArgs =  {
@@ -54,6 +57,7 @@ let
   configGeneratedArgs = { 
     inherit topics_of_interests rest_listen rest_prefix;
     storage = baseDir + "/storage";
+    logs_id = if (logs_id == null) then "LOGS_ID" else logs_id;
   };
   configJson = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args);
 
@@ -70,7 +74,7 @@ let
   gen-config = pkgs.callPackage ./nix/generate-config.nix (args // {
     inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus archiveFileName;
     numberOfFaucets = builtins.length faucetAmounts;
-    inherit (rustPkgs) jormungandr;
+    jormungandr = package;
   });
 
   open-archive = with pkgs; writeScriptBin "open-config-archive" (''
@@ -88,19 +92,17 @@ let
 
   run-jormungandr = with pkgs; writeScriptBin "run-jormungandr" (''
     #!${stdenv.shell}
-    ${runCmd}
+    ${package}/bin/${runCmd}
   '');
 
 in pkgs.stdenv.mkDerivation {
   name = "jormungandr-demo";
   
   buildInputs = with pkgs; [
-    rustPkgs.jormungandr
+    package
     gen-config
-    # open-archive
     run-jormungandr
     arionPkgs.arion
-    #docker
   ];
   shellHook = ''
     mkdir -p "${baseDir}"

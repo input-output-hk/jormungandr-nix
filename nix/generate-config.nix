@@ -16,6 +16,7 @@
 , jormungandr
 , remarshal
 , zip
+, utillinux
 , ...
 }:
 
@@ -24,7 +25,12 @@ with lib; writeScriptBin "generate-config" (''
 
   set -euo pipefail
   
-  export PATH=${stdenv.lib.makeBinPath [ jormungandr remarshal zip ]}:$PATH
+  export PATH=${stdenv.lib.makeBinPath [ jormungandr remarshal zip utillinux ]}:$PATH
+
+  CONFIG_JSON=$(cat <<'EOF'
+    ${configJson}
+  EOF
+  )
 
   GENESIS_JSON=$(cat <<'EOF'
     ${genesisJson}
@@ -40,6 +46,10 @@ with lib; writeScriptBin "generate-config" (''
     ${bftSecretJson}
   EOF
   )
+
+  # Log ids
+  LOGS_ID=$(uuidgen -r)
+  CONFIG_JSON=$(echo "$CONFIG_JSON" | sed -e "s/LOGS_ID/$LOGS_ID/g" )
 
   mkdir -p secrets
 
@@ -105,9 +115,7 @@ with lib; writeScriptBin "generate-config" (''
   '') (range 1 numberOfStakePools))
   + ''
 
-  json2yaml << 'EOF' > config.yaml
-    ${configJson}
-  EOF
+  echo "$CONFIG_JSON" | json2yaml > config.yaml
   echo "$GENESIS_JSON" | json2yaml > genesis.yaml
   echo "$GENESIS_JSON" | jcli genesis encode --output block-0.bin
 

@@ -5,10 +5,11 @@
 , rest_prefix
 , logger_verbosity ? 1
 , logger_format ? "plain"
-, logger_output ? "stderr"
+, logger_output ? "gelf"
 , logger_backend ? "monitoring.stakepool.cardano-testnet.iohkdev.io:12201"
 , public_address ? "/ip4/127.0.0.1/tcp/8299"
 , trusted_peers ? ""
+, logs_id
 , ...
 }:
 with lib; builtins.toJSON {
@@ -19,6 +20,7 @@ with lib; builtins.toJSON {
     output = logger_output;
   } // (if (logger_output == "gelf") then {
     backend = logger_backend;
+    logs_id = logs_id;
   } else {});
   rest = {
     listen = rest_listen;
