@@ -77,10 +77,7 @@ let
       "--secret secrets/secret_bft_leader_${toString i}.yaml "
     ) (range 1 (numberOfLeaders)));
 
-  header =  ''
-    echo "Jormungandr Demo" '' + (if color then ''\
-    | ${pkgs.figlet}/bin/figlet -f banner -c \
-    | ${pkgs.lolcat}/bin/lolcat
+  header = (if color then ''\
     GREEN=`printf "\033[0;32m"`
     RED=`printf "\033[0;31m"`
     BLUE=`printf "\033[0;33m"`
@@ -90,7 +87,7 @@ let
     RED=""
     BLUE=""
     WHITE=""
-    '') +  ''
+    '') + ''
     
     echo "##############################################################################"
     echo "                                Configuration"
@@ -192,6 +189,12 @@ in rec {
       # arionPkgs.arion
     ];
     shellHook = ''
+      echo "Jormungandr Demo" '' + (if color then ''\
+      | ${pkgs.figlet}/bin/figlet -f banner -c \
+      | ${pkgs.lolcat}/bin/lolcat'' else "") + ''
+
+      ${header}
+
       mkdir -p "${baseDir}"
       cd "${baseDir}"
       mkdir -p docker
