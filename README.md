@@ -2,7 +2,7 @@
 
 To drop into a shell with all configuraton files generated for you:
 ```
-nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/624951328a551dbe11d802cf85dd7dfc3a01b2e7.tar.gz
+nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/71dfe428f38f9942e1cb540d2e3ef1546d6ec54d.tar.gz -A shell
 ```
 
 Once in the shell run `run-jormungandr` to start jormungandr.
@@ -41,7 +41,7 @@ nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
 | `--arg linear_fees_coefficient` | `0` | parameter in fee calculation [1] |
 | `--arg linear_fees_certificate` | `0` | parameter in fee calculation [1] |
 | `--arg kes_update_speed` | `43200` (12 hours) | The speed to update the KES Key in seconds |
-| `--argstr storage` | `<rootDir>/jormungandr-<hash of args>/storage` | path to the storage. |
+| `--argstr storage` | `./storage` | path to the storage. |
 | `--argstr rest_listen` | `127.0.0.1:8443` | listen address of the rest endpoint |
 | `--argstr rest_prefix` | `api` | rest api prefix |
 | `--arg logger_verbosity` | `1` | logger verbosity. 0: warning, 1: info, 2: debug, 3 and above: trace. |
