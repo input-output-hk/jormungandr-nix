@@ -102,7 +102,7 @@ in pkgs.stdenv.mkDerivation {
     package
     gen-config
     run-jormungandr
-    arionPkgs.arion
+    # arionPkgs.arion
   ];
   shellHook = ''
     mkdir -p "${baseDir}"
