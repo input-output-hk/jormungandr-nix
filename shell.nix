@@ -1,5 +1,5 @@
 with import ./lib.nix; with lib;
-{ packageName ? "jormungandrMaster"
+{ packageName ? "jormungandr"
 , package ? rustPkgs."${packageName}"
 , block0_consensus ? "genesis"
 , color ? true
