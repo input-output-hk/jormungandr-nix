@@ -37,10 +37,9 @@ nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
 | `--arg bft_slots_ratio` | `0` | Genesis praos parameter D |
 | `--arg consensus_genesis_praos_active_slot_coeff` | `0.1` | Genesis praos active slot coefficient. Determines minimum stake required to try becoming slot leader, must be in range (0,1] |
 | `--arg max_number_of_transactions_per_block` | `255` | This is the max number of messages allowed in a given Block |
-| `--arg allow_account_creation` | `true` | Allow the creation of accounts from the output of a transaction. If set to false, account based wallet will not be created without publishing a stake certificate. if set to true, simply adding the account in the output of a transaction will allow the account to exist in the blockchain. |
-| `--arg linear_fee_constant` | `10` | parameter in fee calculation [1] |
-| `--arg linear_fee_coefficient` | `0` | parameter in fee calculation [1] |
-| `--arg linear_fee_certificate` | `0` | parameter in fee calculation [1] |
+| `--arg linear_fees_constant` | `10` | parameter in fee calculation [1] |
+| `--arg linear_fees_coefficient` | `0` | parameter in fee calculation [1] |
+| `--arg linear_fees_certificate` | `0` | parameter in fee calculation [1] |
 | `--arg kes_update_speed` | `43200` (12 hours) | The speed to update the KES Key in seconds |
 | `--argstr storage` | `<rootDir>/jormungandr-<hash of args>/storage` | path to the storage. |
 | `--argstr rest_listen` | `127.0.0.1:8443` | listen address of the rest endpoint |

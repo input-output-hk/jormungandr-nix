@@ -1,7 +1,6 @@
 { block0_consensus
 , consensus_leader_ids
-, initial_certs
-, initial_funds
+, initial
 , block0_date ? 1550822014
 , isProduction ? false
 , slots_per_epoch ? 60
@@ -10,10 +9,9 @@
 , bft_slots_ratio ? 0
 , consensus_genesis_praos_active_slot_coeff ? 0.1
 , max_number_of_transactions_per_block ? 255
-, allow_account_creation ? true
-, linear_fee_constant ? 10
-, linear_fee_coefficient ? 0
-, linear_fee_certificate ? 0
+, linear_fees_constant ? 10
+, linear_fees_coefficient ? 0
+, linear_fees_certificate ? 0
 , kes_update_speed ? 43200 # 12 hours
 , ...
 }:
@@ -29,14 +27,12 @@ builtins.toJSON {
     bft_slots_ratio = bft_slots_ratio;
     consensus_genesis_praos_active_slot_coeff = consensus_genesis_praos_active_slot_coeff;
     max_number_of_transactions_per_block = max_number_of_transactions_per_block;
-    allow_account_creation = allow_account_creation;
-    linear_fee = {
-      constant = linear_fee_constant;
-      coefficient = linear_fee_coefficient;
-      certificate = linear_fee_certificate;
+    linear_fees = {
+      constant = linear_fees_constant;
+      coefficient = linear_fees_coefficient;
+      certificate = linear_fees_certificate;
     };
     kes_update_speed = kes_update_speed;
   };
-  initial_funds = initial_funds;
-  initial_certs = initial_certs;
+  initial = initial;
 }

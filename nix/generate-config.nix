@@ -11,22 +11,9 @@
 , genesisJson
 , genesisSecretJson
 , bftSecretJson
-, baseDir
-, archiveFileName
-, jormungandr
-, remarshal
-, zip
-, utillinux
 , ...
 }:
-
-with lib; writeScriptBin "generate-config" (''
-  #!${stdenv.shell}
-
-  set -euo pipefail
-  
-  export PATH=${stdenv.lib.makeBinPath [ jormungandr remarshal zip utillinux ]}:$PATH
-
+with lib; ''
   CONFIG_JSON=$(cat <<'EOF'
     ${configJson}
   EOF
@@ -60,7 +47,7 @@ with lib; writeScriptBin "generate-config" (''
   echo $FAUCET_SK_${i} > secrets/stake_${i}_key.sk
   FAUCET_ADDR_${i}=$(jcli address account $FAUCET_PK_${i} ${addrTypeFlag})
   '' + (if (block0_consensus == "bft") then ''
-  echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$FAUCET_SK_${i}/g" | json2yaml > secrets/secret_bft_stake_${i}.yaml
+  echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$FAUCET_SK_${i}/g" > secrets/secret_bft_stake_${i}.yaml
   '' else "") + ''
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/FAUCET_ADDR_${i}/$FAUCET_ADDR_${toString i}/g" )
 
@@ -72,7 +59,7 @@ with lib; writeScriptBin "generate-config" (''
   echo $LEADER_SK_${i} > secrets/leader_${i}_key.sk
   LEADER_PK_${i}=$(echo $LEADER_SK_${i} | jcli key to-public)
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/LEADER_PK_${i}/$LEADER_PK_${i}/g" )
-  echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$LEADER_SK_${i}/g" | json2yaml > secrets/secret_bft_leader_${i}.yaml
+  echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$LEADER_SK_${i}/g" > secrets/secret_bft_leader_${i}.yaml
   
   '') (range 1 numberOfLeaders)) + ''
 
@@ -108,19 +95,14 @@ with lib; writeScriptBin "generate-config" (''
   cat stake_delegation.cert | jcli certificate sign secrets/stake_${i}_key.sk > stake_${i}_delegation.signcert
   STAKE_DELEGATION_CERT_${i}=$(cat stake_${i}_delegation.signcert)
 
-  echo "$GENESIS_SECRET_JSON" | sed -e "s/SIG_KEY/$POOL_KES_SK_${i}/g" | sed -e "s/VRF_KEY/$POOL_VRF_SK_${i}/g" |  sed -e "s/NODE_ID/$STAKE_POOL_ID_${i}/g" | json2yaml > secrets/secret_pool_${i}.yaml
+  echo "$GENESIS_SECRET_JSON" | sed -e "s/SIG_KEY/$POOL_KES_SK_${i}/g" | sed -e "s/VRF_KEY/$POOL_VRF_SK_${i}/g" |  sed -e "s/NODE_ID/$STAKE_POOL_ID_${i}/g" > secrets/secret_pool_${i}.yaml
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/STAKE_POOL_CERT_${i}/$STAKE_POOL_CERT_${i}/g" )
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/STAKE_DELEGATION_CERT_${i}/$STAKE_DELEGATION_CERT_${i}/g" )
 
   '') (range 1 numberOfStakePools))
   + ''
 
-  echo "$CONFIG_JSON" | json2yaml > config.yaml
-  echo "$GENESIS_JSON" | json2yaml > genesis.yaml
+  echo "$CONFIG_JSON" > config.yaml
+  echo "$GENESIS_JSON" > genesis.yaml
   echo "$GENESIS_JSON" | jcli genesis encode --output block-0.bin
-
-  if [ -f "${archiveFileName}" ]; then
-    mv "${archiveFileName}" "${archiveFileName}.bak"
-  fi
-  zip -q -r "${archiveFileName}" block-0.bin config.yaml genesis.yaml secrets *cert
-'')
+''

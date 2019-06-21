@@ -1,11 +1,11 @@
 { lib
-, storage
+, storage ? "./storage"
 , topics_of_interests
 , rest_listen
 , rest_prefix
 , logger_verbosity ? 1
 , logger_format ? "plain"
-, logger_output ? "gelf"
+, logger_output ? "stderr"
 , logger_backend ? "monitoring.stakepool.cardano-testnet.iohkdev.io:12201"
 , public_address ? "/ip4/127.0.0.1/tcp/8299"
 , trusted_peers ? ""
@@ -18,10 +18,9 @@ with lib; builtins.toJSON {
     verbosity = logger_verbosity;
     format = logger_format;
     output = logger_output;
-  } // (if (logger_output == "gelf") then {
     backend = logger_backend;
     logs_id = logs_id;
-  } else {});
+  };
   rest = {
     listen = rest_listen;
     prefix = rest_prefix;
