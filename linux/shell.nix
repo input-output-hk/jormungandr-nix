@@ -4,7 +4,7 @@ let
   snapPackage = rustPkgs.callPackage ./. { inherit makeSnap; };
   shell = pkgs.stdenv.mkDerivation {
     name = "snapcraft-shell";
-    buildInputs = with pkgs; [ snapcraft squashfsTools ];
+    buildInputs = with pkgs; [ snapcraft squashfsTools xdelta ];
     shellHook = ''
     echo "Starting snapcraft development shell..."
     echo "snapPackage can be found at ${snapPackage}"

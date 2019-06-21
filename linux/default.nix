@@ -7,7 +7,7 @@ makeSnap {
   meta = {
     name = "jormungandr";
     summary = "jormungandr";
-    description = "jormungandr";
+    description = "jormungandr node for cardano";
     architectures = [ "amd64" ];
     confinement = "strict";
     apps.jormungandr.command = "${jormungandr}/bin/jormungandr";
