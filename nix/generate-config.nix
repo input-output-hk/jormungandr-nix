@@ -35,7 +35,7 @@ with lib; ''
   )
 
   # Log ids
-  LOGS_ID=$(uuidgen -r)
+  LOGS_ID=$(uuidgen)
   CONFIG_JSON=$(echo "$CONFIG_JSON" | sed -e "s/LOGS_ID/$LOGS_ID/g" )
 
   mkdir -p secrets

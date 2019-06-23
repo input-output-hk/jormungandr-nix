@@ -1,5 +1,6 @@
 with import ./lib.nix; with lib;
 { packageName ? "jormungandr"
+, dockerEnv ? false
 , package ? rustPkgs."${packageName}"
 , block0_consensus ? "genesis"
 , color ? true
@@ -49,7 +50,7 @@ let
   };
   genesisJson = (pkgs.callPackage ./nix/make-genesis.nix (genesisGeneratedArgs // args));
 
-  baseDirName = "jormungandr-" + (builtins.hashString "md5" (builtins.toJSON (builtins.removeAttrs args ["color"])));
+  baseDirName = "jormungandr-" + (builtins.hashString "md5" (builtins.toJSON (builtins.removeAttrs args ["color" "dockerEnv"])));
   baseDir = rootDir + "/" + baseDirName;
   archiveFileName = baseDirName + "-config.zip";
 
@@ -185,18 +186,19 @@ in rec {
       rustPkgs."${packageName}-cli"
       gen-config-script
       run-jormungandr-script
-      jormungandr-bootstrap
-      # arionPkgs.arion
-    ];
+      jormungandr-bootstrap 
+    ] ++ lib.optional dockerEnv arionPkgs.arion;
     shellHook = ''
       echo "Jormungandr Demo" '' + (if color then ''\
       | ${pkgs.figlet}/bin/figlet -f banner -c \
       | ${pkgs.lolcat}/bin/lolcat'' else "") + ''
 
-      ${header}
-
       mkdir -p "${baseDir}"
       cd "${baseDir}"
+
+      ${header}
+
+      '' + (if dockerEnv then ''
       mkdir -p docker
       if [ -L nixos ]; then
         rm nixos
@@ -206,9 +208,7 @@ in rec {
       if [ ! -f ./docker/arion-compose.nix ]; then
         cp "${./.}/docker/arion-compose.nix" docker/
       fi
-
-      ${header}
-
+      '' else "") + ''
       if [ ! -f config.yaml ]; then
         generate-config
       fi
