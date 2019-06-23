@@ -1,6 +1,7 @@
 {
   makeSnap
 , jormungandr
+, jormungandr-bootstrap
 }:
 
 makeSnap {
@@ -12,5 +13,6 @@ makeSnap {
     confinement = "strict";
     apps.jormungandr.command = "${jormungandr}/bin/jormungandr";
     apps.jcli.command = "${jormungandr}/bin/jcli";
+    apps.bootstrap.command = jormungandr-bootstrap;
   };
 }
