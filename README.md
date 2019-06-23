@@ -2,7 +2,7 @@
 
 To drop into a shell with all configuraton files generated for you:
 ```
-nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/71dfe428f38f9942e1cb540d2e3ef1546d6ec54d.tar.gz -A shell
+nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/53c670261cdbb9b638b24e39b5d9810bd9a18453.tar.gz -A shell
 ```
 
 Once in the shell run `run-jormungandr` to start jormungandr.
