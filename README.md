@@ -2,7 +2,8 @@
 
 To drop into a shell with all configuraton files generated for you:
 ```
-nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/53c670261cdbb9b638b24e39b5d9810bd9a18453.tar.gz -A shell
+nix-shell -A shell \
+https://github.com/input-output-hk/jormungandr-nix/archive/68168ddb54de32a52b2aeb61f2810cdc84cfc375.tar.gz
 ```
 
 Once in the shell run `run-jormungandr` to start jormungandr.
@@ -13,11 +14,19 @@ You can tweak the blockchain configuration through nix-shell parameters, eg.:
 ```
 nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
           --arg numberOfStakePools 2 \
-          --argstr block0_consensus bft \
+          --argstr logger_output gelf
           --argstr storage "/tmp/jormungandr-storage" \
-          https://github.com/input-output-hk/jormungandr-nix/archive/master.tar.gz \
+          https://github.com/input-output-hk/jormungandr-nix/archive/68168ddb54de32a52b2aeb61f2810cdc84cfc375.tar.gz \
           --run run-jormungandr
 ```
+
+__Important__ if you want to help IOHK diagnoctic issues you may encoutered
+
+Set logger output to `gelf` with
+```
+--argstr logger_output gelf
+```
+that way jormungandr logs will be sent to iohk testnet log server and will be invaluable inputs to diagnoctic issues.
 
 ## Available parameters
 
@@ -46,7 +55,7 @@ nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
 | `--argstr rest_prefix` | `api` | rest api prefix |
 | `--arg logger_verbosity` | `1` | logger verbosity. 0: warning, 1: info, 2: debug, 3 and above: trace. |
 | `--argstr logger_format` | `plain` | log output format - `plain` or `json`. |
-| `--argstr logger_output` | `gelf` | log output - `stderr`, `gelf` (graylog), `syslog` (unix only) or `journald` |
+| `--argstr logger_output` | `stderr` | log output - `stderr`, `gelf` (graylog), `syslog` (unix only) or `journald` |
 | `--argstr logger_backend` | `monitoring.stakepool.cardano-testnet.iohkdev.io:12201` if `gelf` | Graylog server to ouput the log to, default to iohk cardano-testnet graylog server (for debug purposes). |
 | `--argstr logs_id` | generated uuid | Uniquely identify the logs of this node on the Graylog server. Please comunicate this id when filling issues. |
 | `--argstr public_address` | `/ip4/127.0.0.1/tcp/8299` |  the address to listen from and accept connection from. This is the public address that will be distributed to other peers of the network that may find interest into participating to the blockchain dissemination with the node. |
