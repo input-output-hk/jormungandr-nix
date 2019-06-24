@@ -14,7 +14,7 @@ You can tweak the blockchain configuration through nix-shell parameters, eg.:
 ```
 nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
           --arg numberOfStakePools 2 \
-          --argstr logger_output gelf
+          --argstr logger_output gelf \
           --argstr storage "/tmp/jormungandr-storage" \
           https://github.com/input-output-hk/jormungandr-nix/archive/68168ddb54de32a52b2aeb61f2810cdc84cfc375.tar.gz \
           --run run-jormungandr
