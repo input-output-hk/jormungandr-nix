@@ -25,7 +25,7 @@ nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
 | ------------- | ------------- | ------------- |
 | `--argstr package` | `jormungandrMaster` | Jormungandr package to use. Use `jormungandr` for last stable release. `jormungandrMaster` for last master branch build. |
 | `--argstr rootDir` | `/tmp` | Parent directory of the working directory (generated). |
-| `--argstr block0_consensus` | `genesis`  | Consensus algorithm initialy used. `bft` or `genesis` |
+| `--argstr block0_consensus` | `genesis_praos`  | Consensus algorithm initialy used. `bft` or `genesis_praos` |
 | `--arg faucetAmounts`  | `[ 1000000000 ]` | List of amounts (space separated) in Lovelace that will be attributed to faucet addresses in block 0. |
 | `--arg numberOfStakePools` | `0` if `bft`, `1` if `genesis` | Number of stake pools initialy registered. Each faucet will own on of the stake pool (hence `numberOfStakePools` must be ≤ `faucetAmounts` length). |
 | `--arg numberOfLeaders` | `1` | Number of BFT leaders (keys will be generated). |

@@ -2,7 +2,7 @@ with import ./lib.nix; with lib;
 { packageName ? "jormungandr"
 , dockerEnv ? false
 , package ? rustPkgs."${packageName}"
-, block0_consensus ? "genesis"
+, block0_consensus ? "genesis_praos"
 , color ? true
 , faucetAmounts ? [ 1000000000 ]
 , numberOfStakePools ? if (block0_consensus == "bft") then 0 else (builtins.length faucetAmounts)
@@ -32,16 +32,16 @@ with import ./lib.nix; with lib;
 , logs_id ? null
 , public_address ? null
 , trusted_peers ? null
-, topics_of_interests ? if (numberOfStakePools > 0)  
-    then "messages=high,blocks=high" 
+, topics_of_interests ? if (numberOfStakePools > 0)
+    then "messages=high,blocks=high"
     else "messages=low,blocks=normal"
 }@args:
 let
-  
+
   genesisGeneratedArgs = {
     inherit block0_consensus;
     consensus_leader_ids = map (i: "LEADER_PK_${toString i}") (range 1 numberOfLeaders);
-    initial = imap1 (i: a: { fund = { 
+    initial = imap1 (i: a: { fund = {
         address =  "FAUCET_ADDR_${toString i}";
         value = a;};}) faucetAmounts
       ++ concatMap (i: [
@@ -54,7 +54,7 @@ let
   baseDir = rootDir + "/" + baseDirName;
   archiveFileName = baseDirName + "-config.zip";
 
-  configGeneratedArgs = { 
+  configGeneratedArgs = {
     inherit topics_of_interests rest_listen rest_prefix;
     logs_id = if (logs_id == null) then "LOGS_ID" else logs_id;
   };
@@ -70,11 +70,11 @@ let
     sigKey = "SIG_KEY";
   };
 
-  runCmd = "jormungandr --genesis-block block-0.bin --config config.yaml " + (concatMapStrings (i: 
+  runCmd = "jormungandr --genesis-block block-0.bin --config config.yaml " + (concatMapStrings (i:
       "--secret secrets/secret_pool_${toString i}.yaml "
-    ) (range 1 (numberOfStakePools))) + (if (block0_consensus == "bft") then (concatMapStrings (i: 
+    ) (range 1 (numberOfStakePools))) + (if (block0_consensus == "bft") then (concatMapStrings (i:
       "--secret secrets/secret_bft_stake_${toString i}.yaml "
-    ) (range 1 (builtins.length faucetAmounts))) else "")+ (concatMapStrings (i: 
+    ) (range 1 (builtins.length faucetAmounts))) else "")+ (concatMapStrings (i:
       "--secret secrets/secret_bft_leader_${toString i}.yaml "
     ) (range 1 (numberOfLeaders)));
 
@@ -89,7 +89,7 @@ let
     BLUE=""
     WHITE=""
     '') + ''
-    
+
     echo "##############################################################################"
     echo "                                Configuration"
     echo ""
@@ -102,7 +102,7 @@ let
 
   gen-config-script-fragement-non-nixos = pkgs.callPackage ./nix/generate-config.nix (args // {
     inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus;
-    numberOfFaucets = builtins.length faucetAmounts;  
+    numberOfFaucets = builtins.length faucetAmounts;
   });
 
 in rec {
@@ -113,7 +113,7 @@ in rec {
     #!${stdenv.shell}
 
     set -euo pipefail
-    
+
     export PATH=${stdenv.lib.makeBinPath [ jcli package remarshal zip utillinux ]}:$PATH
   '' + gen-config-script-fragement-non-nixos + ''
     cat genesis.yaml | json2yaml > genesis.yaml.json2yaml
@@ -135,7 +135,7 @@ in rec {
 
   jormungandr-bootstrap = with pkgs; writeScriptBin "jormungandr-bootstrap" (''
     #!/bin/sh
-    
+
     OUTPUT="stderr"
     AUTOSTART=0
     while getopts 'la' c
@@ -175,12 +175,12 @@ in rec {
         echo "To start jormungandr run:"
         echo " $STARTCMD"
       fi
-      
+
   '');
 
   shell = pkgs.stdenv.mkDerivation {
     name = "jormungandr-demo";
-    
+
     buildInputs = with pkgs; [
       package
       rustPkgs."${packageName}-cli"
@@ -215,5 +215,5 @@ in rec {
     '';
   };
 }
- 
+
 

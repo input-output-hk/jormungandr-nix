@@ -1,6 +1,7 @@
 {
   makeSnap
 , jormungandr
+, jormungandr-cli
 , jormungandr-bootstrap
 }:
 
@@ -12,7 +13,7 @@ makeSnap {
     architectures = [ "amd64" ];
     confinement = "strict";
     apps.jormungandr.command = "${jormungandr}/bin/jormungandr";
-    apps.jcli.command = "${jormungandr}/bin/jcli";
+    apps.jcli.command = "${jormungandr-cli}/bin/jcli";
     apps.bootstrap.command = jormungandr-bootstrap;
   };
 }

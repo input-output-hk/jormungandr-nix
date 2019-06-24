@@ -60,7 +60,7 @@ with lib; ''
   LEADER_PK_${i}=$(echo $LEADER_SK_${i} | jcli key to-public)
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/LEADER_PK_${i}/$LEADER_PK_${i}/g" )
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$LEADER_SK_${i}/g" > secrets/secret_bft_leader_${i}.yaml
-  
+
   '') (range 1 numberOfLeaders)) + ''
 
   # stake pools '' + concatStrings (map (idx: let i = toString idx; in ''
@@ -86,7 +86,7 @@ with lib; ''
   cat stake_pool_${i}.cert | jcli certificate sign secrets/stake_${i}_key.sk > stake_pool_${i}.signcert
 
   STAKE_POOL_ID_${i}=$(cat stake_pool_${i}.signcert | jcli certificate get-stake-pool-id)
-  
+
   STAKE_POOL_CERT_${i}=$(cat stake_pool_${i}.signcert)
 
   jcli certificate new stake-delegation \
