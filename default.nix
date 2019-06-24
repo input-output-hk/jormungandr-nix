@@ -133,7 +133,7 @@ in rec {
     ${package}/bin/${runCmd}
   '');
 
-  jormungandr-bootstrap = with pkgs; writeScriptBin "jormungandr-bootstrap" (''
+  jormungandr-bootstrap = with pkgs; writeScriptBin "bootstrap" (''
     #!/bin/sh
 
     OUTPUT="stderr"
@@ -186,7 +186,7 @@ in rec {
       rustPkgs."${packageName}-cli"
       gen-config-script
       run-jormungandr-script
-      jormungandr-bootstrap 
+      jormungandr-bootstrap
     ] ++ lib.optional dockerEnv arionPkgs.arion;
     shellHook = ''
       echo "Jormungandr Demo" '' + (if color then ''\
