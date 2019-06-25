@@ -114,7 +114,7 @@ in rec {
 
     set -euo pipefail
 
-    export PATH=${stdenv.lib.makeBinPath [ jcli package remarshal zip utillinux ]}:$PATH
+    export PATH=${stdenv.lib.makeBinPath [ jcli package remarshal zip libuuid ]}:$PATH
   '' + gen-config-script-fragement-non-nixos + ''
     cat genesis.yaml | json2yaml > genesis.yaml.json2yaml
     mv genesis.yaml.json2yaml genesis.yaml
@@ -134,7 +134,8 @@ in rec {
   '');
 
   jormungandr-bootstrap = with pkgs; writeScriptBin "bootstrap" (''
-    #!/bin/sh
+    #!${stdenv.shell}
+    export PATH=${stdenv.lib.makeBinPath [ package jcli coreutils gnused libuuid ]}
 
     OUTPUT="stderr"
     AUTOSTART=0
