@@ -44,6 +44,15 @@ in {
         '';
       };
 
+      secrets-paths = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        example = [ "/var/lib/keys/faucet-key.yaml" ];
+        description = ''
+          Path to secret yaml.
+        '';
+      };
+
       topicsOfInterests.messages = mkOption {
         type = types.str;
         default = "low";
@@ -134,6 +143,21 @@ in {
           log output - stderr, syslog (unix only) or journald (linux with systemd only, must be enabled during compilation).
         '';
       };
+
+      logger.backend = mkOption {
+        type = types.str;
+        example = "monitoring.stakepool.cardano-testnet.iohkdev.io:12201";
+        description = ''
+          The graylog server to use as GELF backend.
+        '';
+      };
+
+      logger.logs-id = mkOption {
+        type = types.str;
+        description = ''
+          Used by gelf output as log source.
+        '';
+      };
     };
   };
 
@@ -155,7 +179,10 @@ in {
             verbosity = cfg.logger.verbosity;
             format = cfg.logger.format;
             output = cfg.logger.output;
-          };
+          } // (if (cfg.logger.output == "gelf") then {
+            backend = cfg.logger.backend;
+            logs_id = cfg.logger.logs-id;
+          } else {});
           rest = {
             listen = cfg.rest.listenAddress;
             prefix = cfg.rest.prefix;
@@ -168,8 +195,9 @@ in {
             public_id = cfg.publicId;
           } else {});
         });
+        secretsArgs = lib.concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
-        ${cfg.package}/bin/jormungandr --genesis-block ${cfg.block0} --config ${configJson}
+        ${cfg.package}/bin/jormungandr --genesis-block ${cfg.block0} --config ${configJson}${secretsArgs}
       '';
       serviceConfig = {
         User = "jormungandr";
