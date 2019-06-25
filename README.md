@@ -1,3 +1,25 @@
+# Setting up nix
+
+Setting up the IOHK binary cache will significantly decrease build time:
+
+```
+substituters = https://cache.nixos.org https://hydra.iohk.io
+trusted-substituters =
+trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+```
+
+On NixOS this can be done with:
+
+```
+    nix.binaryCaches = [
+      "https://cache.nixos.org"
+      "https://hydra.iohk.io"
+    ];
+    binaryCachePublicKeys = [
+      "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+    ];
+```
+
 # A nix-shell for Jormungandr
 
 To drop into a shell with all configuraton files generated for you:
