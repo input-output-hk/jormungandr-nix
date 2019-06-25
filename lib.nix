@@ -25,6 +25,17 @@ let
   snapcraft = pkgs.callPackage ./nix/snapcraft.nix {};
 in
 {
-  inherit iohkNix pkgs rustPkgs arionPkgs makeSnap snapcraft;
+  inherit iohkNix rustPkgs arionPkgs makeSnap snapcraft;
+  pkgs = rustPkgs.pkgs.extend (self: super: {
+    libuuid = if self.stdenv.isLinux
+      then super.runCommand "libuuid" {} ''
+        mkdir $out/bin -pv
+        cp -v ${super.utillinuxMinimal}/bin/uuidgen $out/bin/uuidgen
+      ''
+      else super.runCommand "libuuid" {} ''
+        mkdir $out/bin -pv
+        ln -sv /usr/bin/uuidgen $out/bin/uuidgen
+      '';
+  });
   inherit (pkgs) lib;
 }
