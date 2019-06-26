@@ -20,6 +20,14 @@ On NixOS this can be done with:
     ];
 ```
 
+# A docker image
+
+```
+docker load < $(nix-build -A docker-images.jormungandr-standalone --no-link)
+docker run -t -e GELF='true' jormungandr-standalone:0.2.3
+```
+(remove `-e GELF='true'` if you don't won't to send jormungandr's logs to iohk)
+
 # A nix-shell for Jormungandr
 
 To drop into a shell with all configuraton files generated for you:
@@ -49,6 +57,7 @@ Set logger output to `gelf` with
 --argstr logger_output gelf
 ```
 that way jormungandr logs will be sent to iohk testnet log server and will be invaluable inputs to diagnoctic issues.
+
 
 ## Available parameters
 

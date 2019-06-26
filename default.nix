@@ -70,7 +70,7 @@ let
     sigKey = "SIG_KEY";
   };
 
-  runCmd = "jormungandr --genesis-block block-0.bin --config config.yaml " + (concatMapStrings (i:
+  run-command = "jormungandr --genesis-block block-0.bin --config config.yaml " + (concatMapStrings (i:
       "--secret secrets/secret_pool_${toString i}.yaml "
     ) (range 1 (numberOfStakePools))) + (if (block0_consensus == "bft") then (concatMapStrings (i:
       "--secret secrets/secret_bft_stake_${toString i}.yaml "
@@ -107,6 +107,12 @@ let
 
 in rec {
 
+  docker-images = pkgs.callPackage ./nix/docker-images.nix {
+    jormungandr-bootstrap = (import ./. {
+      storage = "/data/storage";
+    }).jormungandr-bootstrap;
+  };
+
   jcli = rustPkgs."${packageName}-cli";
 
   gen-config-script = with pkgs; writeScriptBin "generate-config" (''
@@ -114,7 +120,7 @@ in rec {
 
     set -euo pipefail
 
-    export PATH=${stdenv.lib.makeBinPath [ jcli package remarshal zip libuuid ]}:$PATH
+    export PATH=${lib.makeBinPath [ jcli package remarshal zip libuuid ]}:$PATH
   '' + gen-config-script-fragement-non-nixos + ''
     cat genesis.yaml | json2yaml > genesis.yaml.json2yaml
     mv genesis.yaml.json2yaml genesis.yaml
@@ -129,15 +135,22 @@ in rec {
 
   run-jormungandr-script = with pkgs; writeScriptBin "run-jormungandr" (''
     #!${stdenv.shell}
-    echo "Running ${runCmd}"
-    ${package}/bin/${runCmd}
+    echo "Running ${run-command}"
+    ${package}/bin/${run-command}
   '');
 
   jormungandr-bootstrap = with pkgs; writeScriptBin "bootstrap" (''
-    #!${stdenv.shell}
-    export PATH=${stdenv.lib.makeBinPath [ package jcli coreutils gnused libuuid ]}
+    #!${pkgs.runtimeShell}
 
-    OUTPUT="stderr"
+    set -euo pipefail
+    
+    export PATH=${makeBinPath [ package jcli coreutils gnused libuuid ]}
+
+    if [[ "''${GELF:-false}" = "true" ]]; then
+      OUTPUT="gelf"
+    else
+      OUTPUT="stderr"
+    fi
     AUTOSTART=0
     while getopts 'la' c
     do
@@ -165,7 +178,7 @@ in rec {
       else
          OUTPUT_ARG=""
       fi
-      STARTCMD="${runCmd} $OUTPUT_ARG"
+      STARTCMD="${run-command} $OUTPUT_ARG"
 
       if [ "$AUTOSTART" == "1" ]; then
         echo "Running"
