@@ -4,5 +4,5 @@ let
   }).jormungandr-bootstrap;
 in {
   chocoPackage = pkgs.callPackage ./windows {};
-  snapPackage = rustPkgs.callPackage ./linux { inherit makeSnap jormungandr-bootstrap; };
+  snapPackage = pkgs.callPackage ./linux { inherit makeSnap jormungandr-bootstrap; };
 }

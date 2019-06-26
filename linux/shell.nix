@@ -3,7 +3,7 @@ with import ../lib.nix;
 let
   jormungandr-bootstrap = (pkgs.callPackage ../. {
   }).jormungandr-bootstrap;
-  snapPackage = rustPkgs.callPackage ./. { inherit makeSnap jormungandr-bootstrap; };
+  snapPackage = pkgs.callPackage ./. { inherit makeSnap jormungandr-bootstrap; };
   shell = pkgs.stdenv.mkDerivation {
     name = "snapcraft-shell";
     buildInputs = with pkgs; [ snapcraft squashfsTools xdelta ];

@@ -1,7 +1,7 @@
 with import ./lib.nix; with lib;
 { packageName ? "jormungandr"
 , dockerEnv ? false
-, package ? rustPkgs."${packageName}"
+, package ? pkgs."${packageName}"
 , block0_consensus ? "genesis_praos"
 , color ? true
 , faucetAmounts ? [ 1000000000 ]
@@ -113,14 +113,14 @@ in rec {
     }).jormungandr-bootstrap;
   };
 
-  jcli = rustPkgs."${packageName}-cli";
+  jcli = pkgs."${packageName}-cli";
 
   gen-config-script = with pkgs; writeScriptBin "generate-config" (''
     #!${stdenv.shell}
 
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath [ jcli package remarshal zip libuuid ]}:$PATH
+    export PATH=${lib.makeBinPath [ jcli package remarshal zip uuidgen ]}:$PATH
   '' + gen-config-script-fragement-non-nixos + ''
     cat genesis.yaml | json2yaml > genesis.yaml.json2yaml
     mv genesis.yaml.json2yaml genesis.yaml
@@ -144,7 +144,7 @@ in rec {
 
     set -euo pipefail
     
-    export PATH=${makeBinPath [ package jcli coreutils gnused libuuid ]}
+    export PATH=${makeBinPath [ package jcli coreutils gnused uuidgen ]}
 
     if [[ "''${GELF:-false}" = "true" ]]; then
       OUTPUT="gelf"
@@ -197,7 +197,7 @@ in rec {
 
     buildInputs = with pkgs; [
       package
-      rustPkgs."${packageName}-cli"
+      jcli
       gen-config-script
       run-jormungandr-script
       jormungandr-bootstrap
