@@ -1,12 +1,19 @@
 # Setting up nix
 
 Setting up the IOHK binary cache will significantly decrease build time:
+Add the below to the nix.conf file in /etc/nix/nix.conf   (create it if it does not exist)
 
 ```
 substituters = https://cache.nixos.org https://hydra.iohk.io
 trusted-substituters =
 trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 ```
+
+# If you are on WSL, you will also need to add the following flags due to some NixOS required workarounds for WSL:
+- Work around missing cgroups support https://github.com/Microsoft/WSL/issues/994
+`sandbox = false`
+- Work around incorrect file locking https://github.com/Microsoft/WSL/issues/2395
+`use-sqlite-wal = false`
 
 On NixOS this can be done with:
 
