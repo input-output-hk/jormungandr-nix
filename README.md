@@ -9,7 +9,7 @@ trusted-substituters =
 trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 ```
 
-If you are runnning Windwos 10 with WSL, you will also need to add the following flags to fix two NixOS required workarounds needed for NixOS to run on WSL:
+If you are runnning Windows 10 with WSL and Ubuntu, you will also need to add the following flags to fix two NixOS required workarounds needed for NixOS to run on WSL:
 - Work around missing cgroups support https://github.com/Microsoft/WSL/issues/994
 - Work around incorrect file locking https://github.com/Microsoft/WSL/issues/2395
 
