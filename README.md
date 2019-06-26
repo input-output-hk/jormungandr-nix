@@ -26,7 +26,7 @@ On NixOS this can be done with:
 docker load < $(nix-build -A docker-images.jormungandr-standalone --no-link)
 docker run -t -e GELF='true' jormungandr-standalone:0.2.3
 ```
-(remove `-e GELF='true'` if you don't won't to send jormungandr's logs to iohk)
+(remove `-e GELF='true'` if you don't want to send jormungandr's logs to iohk)
 
 # A nix-shell for Jormungandr
 
