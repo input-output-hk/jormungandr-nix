@@ -2,6 +2,7 @@ with import ../lib.nix;
 
 let
   jormungandr-bootstrap = (pkgs.callPackage ../. {
+    rootDir = "$SNAP_USER_DATA";
   }).jormungandr-bootstrap;
   snapPackage = pkgs.callPackage ./. { inherit makeSnap jormungandr-bootstrap; };
   shell = pkgs.stdenv.mkDerivation {

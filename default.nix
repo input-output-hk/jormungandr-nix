@@ -167,6 +167,8 @@ in rec {
         esac
       done
 
+      mkdir -p ${baseDir}
+      cd ${baseDir}
       ${header}
 
       if [ ! -f config.yaml ]; then
