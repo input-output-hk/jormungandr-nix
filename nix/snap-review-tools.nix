@@ -1,16 +1,19 @@
 { stdenv
 , lib
 , python3Packages
+, fetchgit
+, squashfsTools
 }:
 
 with python3Packages;
 
 buildPythonApplication rec {
-  pname = "snapcraft";
+  pname = "snap-review-tools";
   version = "3.3";
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "1z2xfqf4jzskzx36q0z6zbjy88f15gnggpm4mss9k80dak75f7ba";
+  src = fetchgit {
+    url = "https://git.launchpad.net/review-tools";
+    rev = "fbd20c5d160b1741814fb7c503c3d113733ffc52";
+    sha256 = "00l611lcq1hmsdln41lb55z9l2js06n84m7lasdb72kii0nznrf9";
   };
 
   propagatedBuildInputs = with python3Packages; [
@@ -28,6 +31,8 @@ buildPythonApplication rec {
     pyelftools
     debian
     jsonschema
+    magic
+    squashfsTools
   ];
 
   doCheck = false;

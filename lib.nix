@@ -19,13 +19,21 @@ let
       url = "${spec.url}/archive/${spec.rev}.tar.gz";
       inherit (spec) sha256;
     }) {};
-  
+
   rustPkgs = iohkNix.rust-packages.pkgs;
-  makeSnap = iohkNix.pkgs.callPackage ./nix/make-snap.nix {};
-  snapcraft = iohkNix.pkgs.callPackage ./nix/snapcraft.nix {};
+  makeSnap = rustPkgs.callPackage ./nix/make-snap.nix {};
+  snapcraft = rustPkgs.callPackage ./nix/snapcraft.nix {};
+  squashfsTools = rustPkgs.squashfsTools.overrideAttrs (old: {
+    patches = old.patches ++ [
+      ./nix/0005-add-fstime.patch
+    ];
+  });
+  snapReviewTools = rustPkgs.callPackage ./nix/snap-review-tools.nix {
+    inherit squashfsTools;
+  };
 in
 rec {
-  inherit iohkNix arionPkgs makeSnap snapcraft;
+  inherit iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools;
   pkgs = rustPkgs.extend (self: super: {
     uuidgen = if self.stdenv.isLinux
       then super.runCommand "uuidgen" {} ''
