@@ -42,9 +42,10 @@ with lib; ''
 
   # Faucets '' + concatStrings (map (idx: let i = toString idx; in ''
 
-  FAUCET_SK_${i}=$(jcli key generate --type=Ed25519Extended)
+  FAUCET_SK_${i}=$(jcli key generate --type=${if (block0_consensus == "bft") then "Ed25519" else "Ed25519Extended"})
   FAUCET_PK_${i}=$(echo $FAUCET_SK_${i} | jcli key to-public)
   echo $FAUCET_SK_${i} > secrets/stake_${i}_key.sk
+  echo $FAUCET_PK_${i} > stake_${i}_key.pk
   FAUCET_ADDR_${i}=$(jcli address account $FAUCET_PK_${i} ${addrTypeFlag})
   '' + (if (block0_consensus == "bft") then ''
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$FAUCET_SK_${i}/g" > secrets/secret_bft_stake_${i}.yaml

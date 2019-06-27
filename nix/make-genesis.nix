@@ -4,7 +4,7 @@
 , block0_date ? 1550822014
 , isProduction ? false
 , slots_per_epoch ? 60
-, slot_duration ? 10
+, slot_duration
 , epoch_stability_depth ? 10
 , bft_slots_ratio ? 0
 , consensus_genesis_praos_active_slot_coeff ? 0.1
