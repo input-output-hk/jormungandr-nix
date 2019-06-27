@@ -22,7 +22,7 @@ buildPythonApplication rec {
     tabulate
     pymacaroons
     simplejson
-    #progressbar
+    progressbar
     requests_toolbelt
     requests-unixsocket
     pyelftools

@@ -22,7 +22,7 @@ let
 
   rustPkgs = iohkNix.rust-packages.pkgs;
   makeSnap = rustPkgs.callPackage ./nix/make-snap.nix {};
-  snapcraft = rustPkgs.callPackage ./nix/snapcraft.nix {};
+  snapcraft = iohkNix.pkgs.callPackage ./nix/snapcraft.nix {};
   squashfsTools = rustPkgs.squashfsTools.overrideAttrs (old: {
     patches = old.patches ++ [
       ./nix/0005-add-fstime.patch
