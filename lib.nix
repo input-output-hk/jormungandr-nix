@@ -23,6 +23,7 @@ let
   rustPkgs = iohkNix.rust-packages.pkgs;
   makeSnap = rustPkgs.callPackage ./nix/make-snap.nix {};
   snapcraft = iohkNix.pkgs.callPackage ./nix/snapcraft.nix {};
+  choco = iohkNix.pkgs.callPackage ./nix/choco.nix {};
   squashfsTools = rustPkgs.squashfsTools.overrideAttrs (old: {
     patches = old.patches ++ [
       ./nix/0005-add-fstime.patch
@@ -33,7 +34,7 @@ let
   };
 in
 rec {
-  inherit iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools;
+  inherit iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools choco;
   pkgs = rustPkgs.extend (self: super: {
     uuidgen = if self.stdenv.isLinux
       then super.runCommand "uuidgen" {} ''
