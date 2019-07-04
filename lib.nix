@@ -30,7 +30,6 @@ let
 
   oldNixpkgs = import oldNixpkgsSrc {};
 
-#  mono = oldNixpkgs.pkgs.callPackage ( (/. + "/nix/store/" + builtins.elemAt (builtins.split "/nix/store" oldNixpkgsSrc) 2) + /pkgs/development/compilers/mono/default.nix) {
   mono = (oldNixpkgs.pkgs.callPackage (oldNixpkgsSrc + "/pkgs/development/compilers/mono/default.nix") {
     withLLVM = false;
   }).overrideDerivation (oldAttrs: { doCheck = false; });
