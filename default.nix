@@ -246,6 +246,8 @@ let
       fi
 
       ${header}
+      echo "To start jormungandr run: \"run-jormungandr\" which expends to:"
+      echo " ${run-command}"
     '';
   };
 
