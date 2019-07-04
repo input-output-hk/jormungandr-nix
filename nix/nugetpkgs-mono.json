@@ -1,0 +1,12 @@
+{
+  "log4net": {
+    "filename": "log4net.2.0.3.nupkg",
+    "ver": "2.0.3",
+    "sha256": "0n4wsxdcx1rywgpv2fqwnznq137ydgijgcqdbgz7mq4sgz4aq5r8"
+   },
+  "NUnit": {
+    "filename": "NUnit.2.6.4.nupkg",
+    "ver": "2.6.4",
+    "sha256": "19gj03ycc61j1qmn0fdv2knssyysjg8l93zwnaq9akxx0gfysira"
+  }
+}

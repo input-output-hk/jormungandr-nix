@@ -20,10 +20,25 @@ let
       inherit (spec) sha256;
     }) {};
 
+  oldNixpkgsSrc =
+    let
+      spec = builtins.fromJSON (builtins.readFile ./nix/nixpkgs-src-mono.json);
+    in builtins.fetchTarball {
+      url = "${spec.url}/archive/${spec.rev}.tar.gz";
+      inherit (spec) sha256;
+    };
+
+  oldNixpkgs = import oldNixpkgsSrc {};
+
+#  mono = oldNixpkgs.pkgs.callPackage ( (/. + "/nix/store/" + builtins.elemAt (builtins.split "/nix/store" oldNixpkgsSrc) 2) + /pkgs/development/compilers/mono/default.nix) {
+  mono = (oldNixpkgs.pkgs.callPackage (oldNixpkgsSrc + "/pkgs/development/compilers/mono/default.nix") {
+    withLLVM = false;
+  }).overrideDerivation (oldAttrs: { doCheck = false; });
+
   rustPkgs = iohkNix.rust-packages.pkgs;
   makeSnap = rustPkgs.callPackage ./nix/make-snap.nix {};
   snapcraft = iohkNix.pkgs.callPackage ./nix/snapcraft.nix {};
-  choco = iohkNix.pkgs.callPackage ./nix/choco.nix {};
+  choco = iohkNix.pkgs.callPackage ./nix/choco.nix { inherit mono; };
   squashfsTools = rustPkgs.squashfsTools.overrideAttrs (old: {
     patches = old.patches ++ [
       ./nix/0005-add-fstime.patch
