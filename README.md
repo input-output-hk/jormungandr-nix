@@ -32,8 +32,7 @@ docker run -t -e GELF='true' jormungandr-standalone:0.2.3
 
 To drop into a shell with all configuraton files generated for you:
 ```
-nix-shell -A shell \
-https://github.com/input-output-hk/jormungandr-nix/archive/32ea0bf1c78307f797b6b4587191109a3ec9a319.tar.gz
+nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/32ea0bf1c78307f797b6b4587191109a3ec9a319.tar.gz
 ```
 
 Once in the shell run `run-jormungandr` to start jormungandr.
