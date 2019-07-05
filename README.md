@@ -33,7 +33,7 @@ docker run -t -e GELF='true' jormungandr-standalone:0.2.3
 To drop into a shell with all configuraton files generated for you:
 ```
 nix-shell -A shell \
-https://github.com/input-output-hk/jormungandr-nix/archive/68168ddb54de32a52b2aeb61f2810cdc84cfc375.tar.gz
+https://github.com/input-output-hk/jormungandr-nix/archive/32ea0bf1c78307f797b6b4587191109a3ec9a319.tar.gz
 ```
 
 Once in the shell run `run-jormungandr` to start jormungandr.
@@ -44,9 +44,9 @@ You can tweak the blockchain configuration through nix-shell parameters, eg.:
 ```
 nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
           --arg numberOfStakePools 2 \
-          --argstr logger_output gelf
+          --argstr logger_output gelf \
           --argstr storage "/tmp/jormungandr-storage" \
-          https://github.com/input-output-hk/jormungandr-nix/archive/68168ddb54de32a52b2aeb61f2810cdc84cfc375.tar.gz \
+          https://github.com/input-output-hk/jormungandr-nix/archive/32ea0bf1c78307f797b6b4587191109a3ec9a319.tar.gz \
           --run run-jormungandr
 ```
 
