@@ -9,9 +9,9 @@
 , bft_slots_ratio ? 0
 , consensus_genesis_praos_active_slot_coeff ? 0.1
 , max_number_of_transactions_per_block ? 255
-, linear_fees_constant ? 10
-, linear_fees_coefficient ? 0
-, linear_fees_certificate ? 0
+, linear_fees_constant
+, linear_fees_coefficient
+, linear_fees_certificate
 , kes_update_speed ? 43200 # 12 hours
 , ...
 }:

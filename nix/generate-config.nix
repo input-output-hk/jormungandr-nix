@@ -1,5 +1,7 @@
 { stdenv
 , lib
+, jcli
+, storage
 , writeScriptBin
 , block0_consensus
 , isProduction ? false
@@ -11,6 +13,11 @@
 , genesisJson
 , genesisSecretJson
 , bftSecretJson
+, httpHost
+, color
+, linear_fees_constant
+, linear_fees_certificate
+, linear_fees_coefficient
 , ...
 }:
 with lib; ''
@@ -106,4 +113,32 @@ with lib; ''
   echo "$CONFIG_JSON" > config.yaml
   echo "$GENESIS_JSON" > genesis.yaml
   echo "$GENESIS_JSON" | jcli genesis encode --output block-0.bin
+  BLOCK0_HASH=`jcli genesis hash --input block-0.bin`
+
+  process_file() {
+      FROM=''${1}
+      TO=''${2}
+
+      sed -e "s/####FAUCET_SK####/''${FAUCET_SK_1}/" \
+          -e "s/####BLOCK0_HASH####/''${BLOCK0_HASH}/" \
+          -e "s;####REST_URL####;${httpHost};" \
+          -e "s;####CLI####;jcli;" \
+          -e "s/####COLORS####/${if color then "1" else "0"}/" \
+          -e "s/####FEE_CONSTANT####/${toString linear_fees_constant}/" \
+          -e "s/####FEE_CERTIFICATE####/${toString linear_fees_certificate}/" \
+          -e "s/####FEE_COEFFICIENT####/${toString linear_fees_coefficient}/" \
+          -e "s/####ADDRTYPE####/${addrTypeFlag}/" \
+          -e "s/####STAKE_POOL_ID####/''${STAKE_POOL_ID_1}/" \
+          < ''${FROM} > ''${TO}
+
+      chmod +x ''${TO}
+  }
+  
+  process_file "${jcli}/scripts/faucet-send-money.shtempl" faucet-send-money.sh
+  process_file "${jcli}/scripts/faucet-send-certificate.shtempl" faucet-send-certificate.sh
+  process_file "${jcli}/scripts/create-account-and-delegate.shtempl" create-account-and-delegate.sh
+
+  if [ -d "${storage}" ]; then
+    rm -r "${storage}"
+  fi
 ''

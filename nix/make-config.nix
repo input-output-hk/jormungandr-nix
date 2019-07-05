@@ -1,5 +1,5 @@
 { lib
-, storage ? "./storage"
+, storage
 , topics_of_interests
 , rest_listen
 , rest_prefix

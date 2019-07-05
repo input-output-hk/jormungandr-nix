@@ -1,7 +1,7 @@
 with import ./lib.nix; with lib;
-{ packageName ? "jormungandr"
-, dockerEnv ? false
-, package ? pkgs."${packageName}"
+{ dockerEnv ? false
+, package ? pkgs.jormungandr
+, jcli ? pkgs.jormungandr-cli
 , block0_consensus ? "genesis_praos"
 , color ? true
 , faucetAmounts ? [ 1000000000 ]
@@ -17,14 +17,14 @@ with import ./lib.nix; with lib;
 , bft_slots_ratio ? null
 , consensus_genesis_praos_active_slot_coeff ? null
 , max_number_of_transactions_per_block ? null
-, linear_fees_constant ? null
-, linear_fees_coefficient ? null
-, linear_fees_certificate ? null
+, linear_fees_constant ? 10
+, linear_fees_coefficient ? 0
+, linear_fees_certificate ? 0
 , kes_update_speed ? null
 # Same for make-config.nix
-, storage ? null
+, storage ? "./storage"
 , rest_listen ? "127.0.0.1:8443"
-, rest_prefix ? "api"
+, rest_prefix ? ""
 , logger_verbosity ? null
 , logger_format ? null
 , logger_output ? null
@@ -38,12 +38,12 @@ with import ./lib.nix; with lib;
 }@args:
 let
 
-  jcli = pkgs."${packageName}-cli";
-
   numberOfFaucets = builtins.length faucetAmounts;
 
+  httpHost = "http://${rest_listen}/${rest_prefix}";
+
   genesisGeneratedArgs = {
-    inherit block0_consensus slot_duration;
+    inherit block0_consensus slot_duration linear_fees_constant linear_fees_certificate linear_fees_coefficient;
     consensus_leader_ids = map (i: "LEADER_PK_${toString i}") (range 1 numberOfLeaders);
     initial = imap1 (i: a: { fund = {
         address =  "FAUCET_ADDR_${toString i}";
@@ -59,7 +59,7 @@ let
   archiveFileName = baseDirName + "-config.zip";
 
   configGeneratedArgs = {
-    inherit topics_of_interests rest_listen rest_prefix;
+    inherit topics_of_interests rest_listen rest_prefix storage;
     logs_id = if (logs_id == null) then "LOGS_ID" else logs_id;
   };
   configJson = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args);
@@ -122,10 +122,11 @@ let
     '') (range 1 numberOfFaucets)) + ''
     echo "##############################################################################"
     echo ""
+    
   '';
 
   gen-config-script-fragement-non-nixos = pkgs.callPackage ./nix/generate-config.nix (args // {
-    inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets;
+    inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
   });
   
 
@@ -211,6 +212,11 @@ let
 
   '');
 
+  send-transaction = pkgs.writeScriptBin "send-transaction" (
+    builtins.replaceStrings ["http://127.0.0.1:8443/api"] [httpHost]
+    (builtins.readFile (jcli + "/scripts/send-transaction"))
+  );
+
   shell = pkgs.stdenv.mkDerivation {
     name = "jormungandr-demo";
 
@@ -221,6 +227,7 @@ let
       run-jormungandr-script
       jormungandr-bootstrap
       jq
+      send-transaction
     ] ++ lib.optional dockerEnv arionPkgs.arion;
     shellHook = ''
       echo "Jormungandr Demo" '' + (if color then ''\
@@ -246,8 +253,24 @@ let
       fi
 
       ${header}
+      source ${jcli}/scripts/jcli-helpers
+
       echo "To start jormungandr run: \"run-jormungandr\" which expends to:"
       echo " ${run-command}"
+      echo ""
+      echo "To connect using CLI REST:"
+      echo "  jcli rest v0 <CMD> --host \"${httpHost}\""
+      echo "For example:"
+      echo "  jcli rest v0 node stats get -h \"${httpHost}\""
+      echo ""
+      echo "Available helper scripts:"
+      echo " - send-transaction"
+      echo " - ./create-account-and-delegate.sh"
+      echo " - ./faucet-send-certificate.sh"
+      echo " - ./faucet-send-money.sh"
+      echo " - jcli-stake-delegate-new"
+      echo " - jcli-generate-account"
+      echo " - jcli-generate-account-export-suffix"
     '';
   };
 
