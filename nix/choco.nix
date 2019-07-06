@@ -67,7 +67,7 @@ in stdenv.mkDerivation rec {
     ls -la ./code_drop/chocolatey/console/
     cp ./code_drop/chocolatey/console/* $out/bin/
   '';
-  doCheck = false;
+  doCheck = true;
 
   passthru = {
     inherit allDeps mono;
