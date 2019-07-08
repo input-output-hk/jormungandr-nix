@@ -45,10 +45,11 @@ let
   genesisGeneratedArgs = {
     inherit block0_consensus slot_duration linear_fees_constant linear_fees_certificate linear_fees_coefficient;
     consensus_leader_ids = map (i: "LEADER_PK_${toString i}") (range 1 numberOfLeaders);
-    initial = imap1 (i: a: { fund = {
+    initial = [{
+      fund = imap1 (i: a: {
         address =  "FAUCET_ADDR_${toString i}";
-        value = a;};}) faucetAmounts
-      ++ concatMap (i: [
+        value = a;}) faucetAmounts;
+      }] ++ concatMap (i: [
       { cert = "STAKE_POOL_CERT_${toString i}"; }
       { cert = "STAKE_DELEGATION_CERT_${toString i}"; }]) (range 1 (numberOfStakePools));
   };
@@ -94,7 +95,7 @@ let
     WHITE=""
     '') + ''
 
-    
+
 
     echo "##############################################################################"
     echo ""
@@ -122,13 +123,13 @@ let
     '') (range 1 numberOfFaucets)) + ''
     echo "##############################################################################"
     echo ""
-    
+
   '';
 
   gen-config-script-fragement-non-nixos = pkgs.callPackage ./nix/generate-config.nix (args // {
     inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
   });
-  
+
 
   docker-images = pkgs.callPackage ./nix/docker-images.nix {
     jormungandr-bootstrap = (import ./. {
@@ -160,7 +161,7 @@ let
     #!${pkgs.runtimeShell}
 
     set -euo pipefail
-    
+
     export PATH=${makeBinPath [ package jcli coreutils gnused uuidgen jq ]}
 
     if [[ "''${GELF:-false}" = "true" ]]; then
