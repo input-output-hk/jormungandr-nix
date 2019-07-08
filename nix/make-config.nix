@@ -14,12 +14,17 @@
 }:
 with lib; builtins.toJSON {
   storage = storage;
-  logger = {
+  logger = let
+    output = if logger_output == "gelf" then {
+      gelf = {
+        backend = logger_backend;
+        log_id = logs_id;
+      };
+    } else logger_output;
+  in {
     verbosity = logger_verbosity;
     format = logger_format;
-    output = logger_output;
-    backend = logger_backend;
-    logs_id = logs_id;
+    output = output;
   };
   rest = {
     listen = rest_listen;
@@ -29,7 +34,7 @@ with lib; builtins.toJSON {
     public_address = public_address;
     trusted_peers = if (trusted_peers == "") then [] else
       imap1 (i: a: { id = i; address = a; }) (splitString "," trusted_peers);
-    topics_of_interests = listToAttrs (map (topic: 
+    topics_of_interests = listToAttrs (map (topic:
       let
         split = splitString "=" topic;
       in

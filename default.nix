@@ -153,7 +153,9 @@ let
 
   run-jormungandr-script = with pkgs; writeScriptBin "run-jormungandr" (''
     #!${stdenv.shell}
+    LOG_ID=$(jq .logger.output.gelf.log_id < config.yaml)
     echo "Running ${run-command}"
+    echo "log_id: $LOG_ID"
     ${package}/bin/${run-command}
   '');
 
