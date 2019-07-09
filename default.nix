@@ -112,7 +112,7 @@ let
     echo "########################################################"
     echo ""
     '' + (concatMapStrings (idx: let i = toString idx; n = toString (idx -1); in ''
-    echo " Faucet account ${i}: ''${GREEN}`cat genesis.yaml | jq -r '.initial[${n}].fund.address'`''${WHITE}"
+    echo " Faucet account ${i}: ''${GREEN}`jq -r '.initial[0].fund[${n}].address' < genesis.yaml`''${WHITE}"
     echo "  * public:  ''${BLUE}`cat stake_${i}_key.pk`''${WHITE}"
     echo "  * secret:  ''${RED}`cat secrets/stake_${i}_key.sk`''${WHITE}"
     echo "  * amount:  ''${GREEN}${toString (elemAt faucetAmounts (idx -1))}''${WHITE}"
