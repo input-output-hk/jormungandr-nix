@@ -123,7 +123,6 @@ let
     '') (range 1 numberOfFaucets)) + ''
     echo "##############################################################################"
     echo ""
-
   '';
 
   gen-config-script-fragement-non-nixos = pkgs.callPackage ./nix/generate-config.nix (args // {
@@ -138,7 +137,7 @@ let
   };
 
   gen-config-script = with pkgs; writeScriptBin "generate-config" (''
-    #!${stdenv.shell}
+    #!${pkgs.runtimeShell}
 
     set -euo pipefail
 
@@ -152,10 +151,17 @@ let
   '');
 
   run-jormungandr-script = with pkgs; writeScriptBin "run-jormungandr" (''
-    #!${stdenv.shell}
-    LOG_ID=$(jq .logger.output.gelf.log_id < config.yaml)
+    #!${pkgs.runtimeShell}
     echo "Running ${run-command}"
-    echo "log_id: $LOG_ID"
+  '' + (if (logger_output == "gelf") then ''
+    echo "##############################################################################"
+    echo ""
+    echo "log_id: `jq -r '.logger.output.gelf.log_id' < config.yaml`"
+    echo ""
+    echo "##############################################################################"
+    echo ""
+    ''
+  else "") + '' 
     ${package}/bin/${run-command}
   '');
 
