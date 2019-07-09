@@ -178,11 +178,12 @@ in {
           logger = {
             verbosity = cfg.logger.verbosity;
             format = cfg.logger.format;
-            output = cfg.logger.output;
-          } // (if (cfg.logger.output == "gelf") then {
-            backend = cfg.logger.backend;
-            logs_id = cfg.logger.logs-id;
-          } else {});
+            output = (if (cfg.logger.output == "gelf") then {
+              gelf = { 
+                backend = cfg.logger.backend;
+                logs_id = cfg.logger.logs-id;
+              };
+            } else cfg.logger.output);
           rest = {
             listen = cfg.rest.listenAddress;
             prefix = cfg.rest.prefix;
