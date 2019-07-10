@@ -10,6 +10,7 @@
 , numberOfStakePools
 , numberOfLeaders
 , configJson
+, configJsonGelf
 , genesisJson
 , genesisSecretJson
 , bftSecretJson
@@ -23,6 +24,11 @@
 with lib; ''
   CONFIG_JSON=$(cat <<'EOF'
     ${configJson}
+  EOF
+  )
+
+  CONFIG_JSON_GELF=$(cat <<'EOF'
+    ${configJsonGelf}
   EOF
   )
 
@@ -44,6 +50,7 @@ with lib; ''
   # Log ids
   LOGS_ID=$(uuidgen)
   CONFIG_JSON=$(echo "$CONFIG_JSON" | sed -e "s/LOGS_ID/$LOGS_ID/g" )
+  CONFIG_JSON_GELF=$(echo "$CONFIG_JSON_GELF" | sed -e "s/LOGS_ID/$LOGS_ID/g" )
 
   mkdir -p secrets
 
@@ -111,6 +118,7 @@ with lib; ''
   + ''
 
   echo "$CONFIG_JSON" > config.yaml
+  echo "$CONFIG_JSON_GELF" > config-gelf.yaml
   echo "$GENESIS_JSON" > genesis.yaml
   echo "$GENESIS_JSON" | jcli genesis encode --output block-0.bin
   BLOCK0_HASH=`jcli genesis hash --input block-0.bin`
@@ -133,7 +141,7 @@ with lib; ''
 
       chmod +x ''${TO}
   }
-  
+
   process_file "${jcli}/scripts/faucet-send-money.shtempl" faucet-send-money.sh
   process_file "${jcli}/scripts/faucet-send-certificate.shtempl" faucet-send-certificate.sh
   process_file "${jcli}/scripts/create-account-and-delegate.shtempl" create-account-and-delegate.sh

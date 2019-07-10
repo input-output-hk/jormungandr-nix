@@ -64,6 +64,8 @@ let
     logs_id = if (logs_id == null) then "LOGS_ID" else logs_id;
   };
   configJson = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args);
+  # Used outside of nix so we can override whether to use gelf on command-line
+  configJsonGelf = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args // { logger_output = "gelf"; });
 
   genesisSecretJson = pkgs.callPackage ./nix/make-genesis-secret.nix {
     sigKey = "SIG_KEY";
@@ -75,7 +77,7 @@ let
     sigKey = "SIG_KEY";
   };
 
-  run-command = "jormungandr --genesis-block block-0.bin --config config.yaml " + (concatMapStrings (i:
+  run-command = { config ? "config.yaml"} : "jormungandr --genesis-block block-0.bin --config ${config} " + (concatMapStrings (i:
       "--secret secrets/secret_pool_${toString i}.yaml "
     ) (range 1 (numberOfStakePools))) + (if (block0_consensus == "bft") then (concatMapStrings (i:
       "--secret secrets/secret_bft_stake_${toString i}.yaml "
@@ -125,8 +127,8 @@ let
     echo ""
   '';
 
-  gen-config-script-fragement-non-nixos = pkgs.callPackage ./nix/generate-config.nix (args // {
-    inherit genesisJson configJson genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
+  gen-config-script-fragment-non-nixos = pkgs.callPackage ./nix/generate-config.nix (args // {
+    inherit genesisJson configJson configJsonGelf genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
   });
 
 
@@ -136,23 +138,23 @@ let
     }).jormungandr-bootstrap;
   };
 
-  gen-config-script = with pkgs; writeScriptBin "generate-config" (''
+  gen-config-script = with pkgs; writeScriptBin "generate-config" ''
     #!${pkgs.runtimeShell}
 
     set -euo pipefail
 
     export PATH=${lib.makeBinPath [ jcli package remarshal zip uuidgen ]}:$PATH
-  '' + gen-config-script-fragement-non-nixos + ''
+    ${gen-config-script-fragment-non-nixos}
 
     if [ -f "${archiveFileName}" ]; then
       mv "${archiveFileName}" "${archiveFileName}.bak"
     fi
     zip -q -r "${archiveFileName}" block-0.bin config.yaml genesis.yaml secrets *cert
-  '');
+  '';
 
   run-jormungandr-script = with pkgs; writeScriptBin "run-jormungandr" (''
     #!${pkgs.runtimeShell}
-    echo "Running ${run-command}"
+    echo "Running ${run-command {}}"
   '' + (if (logger_output == "gelf") then ''
     echo "##############################################################################"
     echo ""
@@ -161,8 +163,8 @@ let
     echo "##############################################################################"
     echo ""
     ''
-  else "") + '' 
-    ${package}/bin/${run-command}
+  else "") + ''
+    ${package}/bin/${run-command {}}
   '');
 
   jormungandr-bootstrap = with pkgs; writeScriptBin "bootstrap" (''
@@ -196,22 +198,22 @@ let
       mkdir -p ${baseDir}
       cd ${baseDir}
 
-      if [ ! -f config.yaml ]; then
-        ${gen-config-script-fragement-non-nixos}
-      fi
+      rm -f config.yaml
+      ${gen-config-script-fragment-non-nixos}
 
       ${header}
 
       if [ "$OUTPUT" == "gelf" ]; then
-         OUTPUT_ARG="--log-output gelf"
+         CONFIG_FILE="config-gelf.yaml"
       else
-         OUTPUT_ARG=""
+         CONFIG_FILE="config.yaml"
       fi
-      STARTCMD="${run-command} $OUTPUT_ARG"
+      STARTCMD="${run-command { config = "$CONFIG_FILE"; }}"
 
       if [ "$AUTOSTART" == "1" ]; then
         echo "Running"
         echo " $STARTCMD"
+        echo "State is stored in ${baseDir}"
         echo ""
         $STARTCMD
       else
@@ -265,7 +267,7 @@ let
       source ${jcli}/scripts/jcli-helpers
 
       echo "To start jormungandr run: \"run-jormungandr\" which expends to:"
-      echo " ${run-command}"
+      echo " ${run-command {}}"
       echo ""
       echo "To connect using CLI REST:"
       echo "  jcli rest v0 <CMD> --host \"${httpHost}\""
