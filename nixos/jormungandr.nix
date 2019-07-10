@@ -172,18 +172,19 @@ in {
       description   = "Jormungandr node service";
       after         = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
-      script = let 
+      script = let
         configJson = builtins.toFile "config.yaml" (builtins.toJSON {
           storage = "/var/lib/" + cfg.stateDir;
           logger = {
             verbosity = cfg.logger.verbosity;
             format = cfg.logger.format;
             output = (if (cfg.logger.output == "gelf") then {
-              gelf = { 
+              gelf = {
                 backend = cfg.logger.backend;
                 logs_id = cfg.logger.logs-id;
               };
             } else cfg.logger.output);
+          };
           rest = {
             listen = cfg.rest.listenAddress;
             prefix = cfg.rest.prefix;
