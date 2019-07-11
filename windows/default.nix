@@ -14,7 +14,7 @@ let
   url = "https://github.com/input-output-hk/jormungandr/releases/download/v${version}/jormungandr-v${version}-x86_64-pc-windows-gnu.zip";
   src = fetchurl {
     inherit url;
-    sha256 = "003m74f3g0rz250zmak09klzpw0vnsb1lkndnxlqqs2a3iywmvkv";
+    sha256 = "1vj6krg0j6mhmcvpb0wwppzxdbz4v3q45y2nzzva1s22yg8yihxq";
   };
   nuspec = import ./jormungandr-nuspec.nix { inherit writeText version; };
 
@@ -27,7 +27,8 @@ in runCommand "build-choco-jormungandr" { buildInputs = [ unzip choco.mono ]; } 
   cp -a ${./tools} tools
   chmod 0755 tools
   pushd tools
-  unzip ${src}
+  cp ${src} release.zip
+  ls -la
   popd
   mono ${choco}/bin/choco.exe pack ./jormungandr.nuspec --allow-unofficial
   cp jormungandr.${version}.nupkg $out/

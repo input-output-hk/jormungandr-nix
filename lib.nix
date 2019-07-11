@@ -29,11 +29,9 @@ let
     };
 
   oldNixpkgs = import oldNixpkgsSrc {};
-
   mono = (oldNixpkgs.pkgs.callPackage (oldNixpkgsSrc + "/pkgs/development/compilers/mono/default.nix") {
     withLLVM = false;
-  }).overrideDerivation (oldAttrs: { doCheck = false; });
-
+  });
   rustPkgs = iohkNix.rust-packages.pkgs;
   makeSnap = rustPkgs.callPackage ./nix/make-snap.nix {};
   snapcraft = iohkNix.pkgs.callPackage ./nix/snapcraft.nix {};
