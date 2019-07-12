@@ -25,7 +25,7 @@ with import ./lib.nix; with lib;
 , storage ? "./storage"
 , rest_listen ? "127.0.0.1:8443"
 , rest_prefix ? ""
-, logger_verbosity ? null
+, logger_level ? null
 , logger_format ? null
 , logger_output ? null
 , logger_backend ? null
@@ -158,7 +158,7 @@ let
   '' + (if (logger_output == "gelf") then ''
     echo "##############################################################################"
     echo ""
-    echo "log_id: `jq -r '.logger.output.gelf.log_id' < config.yaml`"
+    echo "log_id: `jq -r '.log.output.gelf.log_id' < config.yaml`"
     echo ""
     echo "##############################################################################"
     echo ""
@@ -205,6 +205,7 @@ let
 
       if [ "$OUTPUT" == "gelf" ]; then
          CONFIG_FILE="config-gelf.yaml"
+         echo "log_id: `jq -r '.log.output.gelf.log_id' < config-gelf.yaml`"
       else
          CONFIG_FILE="config.yaml"
       fi

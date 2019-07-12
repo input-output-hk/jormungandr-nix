@@ -3,7 +3,7 @@
 , topics_of_interests
 , rest_listen
 , rest_prefix
-, logger_verbosity ? 1
+, logger_level ? "info"
 , logger_format ? "plain"
 , logger_output ? "stderr"
 , logger_backend ? "monitoring.stakepool.cardano-testnet.iohkdev.io:12201"
@@ -14,7 +14,7 @@
 }:
 with lib; builtins.toJSON {
   storage = storage;
-  logger = let
+  log = let
     output = if logger_output == "gelf" then {
       gelf = {
         backend = logger_backend;
@@ -22,7 +22,7 @@ with lib; builtins.toJSON {
       };
     } else logger_output;
   in {
-    verbosity = logger_verbosity;
+    level = logger_level;
     format = logger_format;
     output = output;
   };

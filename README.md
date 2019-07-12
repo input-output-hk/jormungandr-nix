@@ -1,6 +1,6 @@
 # Setting up nix
 
-Setting up the IOHK binary cache will significantly decrease build time.  
+Setting up the IOHK binary cache will significantly decrease build time.
 Add the below to the nix.conf file in /etc/nix/nix.conf   (create it if it does not exist):
 
 ```
@@ -93,7 +93,7 @@ that way jormungandr logs will be sent to iohk testnet log server and will be in
 | `--argstr storage` | `./storage` | path to the storage. |
 | `--argstr rest_listen` | `127.0.0.1:8443` | listen address of the rest endpoint |
 | `--argstr rest_prefix` | `api` | rest api prefix |
-| `--arg logger_verbosity` | `1` | logger verbosity. 0: warning, 1: info, 2: debug, 3 and above: trace. |
+| `--arg logger_level` | `info` | logger level:  "off", "critical", "error", "warn", "info", "debug", "trace".
 | `--argstr logger_format` | `plain` | log output format - `plain` or `json`. |
 | `--argstr logger_output` | `stderr` | log output - `stderr`, `gelf` (graylog), `syslog` (unix only) or `journald` |
 | `--argstr logger_backend` | `monitoring.stakepool.cardano-testnet.iohkdev.io:12201` if `gelf` | Graylog server to ouput the log to, default to iohk cardano-testnet graylog server (for debug purposes). |

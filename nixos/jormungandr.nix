@@ -117,12 +117,12 @@ in {
         '';
       };
 
-      logger.verbosity = mkOption {
-        type = types.int;
-        default = 1;
-        example = 3;
+      logger.level = mkOption {
+        type = types.string;
+        default = "info";
+        example = "debug";
         description = ''
-          Logger verbosity 0 - warning, 1 - info, 2 -debug, 3 and above - trace.
+          Logger level: "off", "critical", "error", "warn", "info", "debug", "trace"
         '';
       };
 
@@ -176,7 +176,7 @@ in {
         configJson = builtins.toFile "config.yaml" (builtins.toJSON {
           storage = "/var/lib/" + cfg.stateDir;
           logger = {
-            verbosity = cfg.logger.verbosity;
+            level = cfg.logger.level;
             format = cfg.logger.format;
             output = (if (cfg.logger.output == "gelf") then {
               gelf = {

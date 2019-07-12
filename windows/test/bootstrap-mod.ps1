@@ -193,7 +193,7 @@ initial:
 
 "storage: ""$STORAGE_PATH""
 logger:
-  verbosity: 1
+  level: info
   format: plain
   output: stderr
 rest:

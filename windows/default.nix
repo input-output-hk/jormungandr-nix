@@ -8,7 +8,7 @@
 , docker
 , choco
 , fetchurl
-, version ? "0.2.4"
+, version ? "0.3.0"
 }:
 let
   url = "https://github.com/input-output-hk/jormungandr/releases/download/v${version}/jormungandr-v${version}-x86_64-pc-windows-gnu.zip";
