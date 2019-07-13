@@ -34,7 +34,7 @@ On NixOS this can be done with:
 
 ```
 docker load < $(nix-build -A docker-images.jormungandr-standalone --no-link)
-docker run -t -e GELF='true' jormungandr-standalone:0.2.3
+docker run -t -e GELF='true' jormungandr-standalone:0.3.0
 ```
 (remove `-e GELF='true'` if you don't want to send jormungandr's logs to iohk)
 
@@ -42,7 +42,7 @@ docker run -t -e GELF='true' jormungandr-standalone:0.2.3
 
 To drop into a shell with all configuraton files generated for you:
 ```
-nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/32ea0bf1c78307f797b6b4587191109a3ec9a319.tar.gz
+nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/master.tar.gz
 ```
 
 Once in the shell run `run-jormungandr` to start jormungandr.

@@ -6,7 +6,7 @@
 with dockerTools; {
   jormungandr-standalone = buildImage {
     name = "jormungandr-standalone";
-    tag = "0.2.3";
+    tag = "0.3.0";
 
     fromImage = pullImage{
       imageName = "lnl7/nix";
