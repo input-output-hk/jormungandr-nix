@@ -1,15 +1,15 @@
 ﻿$CLI="jcli"
 $NODE="jormungandr"
 
-Write-Output "Checking for any running jormungandr processes before uninstalling..."
-$PROCESS1 = Get-Process $CLI -ErrorAction SilentlyContinue
-$PROCESS2 = Get-Process $NODE -ErrorAction SilentlyContinue
+function Stop-Jormungandr {
+	param ($NAME)
 
-if ($PROCESS1) {
-        Write-Output "Founding $CLI running.  Shutting down..."
-        $PROCESS1 | Stop-Process -Force
+	[System.Diagnostics.Process[]]$PROCESSLIST = Get-Process -Name $NAME -ErrorAction SilentlyContinue
+	ForEach ($Process in $PROCESSLIST) {
+		$Process | Stop-Process -Force -Verbose
+	}
 }
-if ($PROCESS2) {
-        Write-Output "Founding $NODE running.  Shutting down..."
-        $PROCESS2 | Stop-Process -Force
-}
+
+Write-Output "Stopping any running jormungandr processes before upgrading or uninstalling..."
+Stop-Jormungandr $CLI
+Stop-Jormungandr $NODE
