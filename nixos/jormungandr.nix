@@ -53,7 +53,7 @@ in {
         '';
       };
 
-      topicsOfInterests.messages = mkOption {
+      topicsOfInterest.messages = mkOption {
         type = types.str;
         default = "low";
         description = ''
@@ -62,7 +62,7 @@ in {
           For a stakepool: "high".
         '';
       };
-      topicsOfInterests.blocks = mkOption {
+      topicsOfInterest.blocks = mkOption {
         type = types.str;
         default = "normal";
         description = ''
@@ -189,10 +189,10 @@ in {
             listen = cfg.rest.listenAddress;
             prefix = cfg.rest.prefix;
           };
-          peer_2_peer = {
+          p2p = {
             public_address = cfg.publicAddress;
             trusted_peers = cfg.trustedPeersAddresses;
-            topics_of_interests = cfg.topicsOfInterests;
+            topics_of_interest = cfg.topicsOfInterest;
           } // (if (cfg.publicId != null) then {
             public_id = cfg.publicId;
           } else {});

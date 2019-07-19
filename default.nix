@@ -32,7 +32,7 @@ with import ./lib.nix; with lib;
 , logs_id ? null
 , public_address ? null
 , trusted_peers ? null
-, topics_of_interests ? if (numberOfStakePools > 0)
+, topics_of_interest ? if (numberOfStakePools > 0)
     then "messages=high,blocks=high"
     else "messages=low,blocks=normal"
 }@args:
@@ -60,7 +60,7 @@ let
   archiveFileName = baseDirName + "-config.zip";
 
   configGeneratedArgs = {
-    inherit topics_of_interests rest_listen rest_prefix storage;
+    inherit topics_of_interest rest_listen rest_prefix storage;
     logs_id = if (logs_id == null) then "LOGS_ID" else logs_id;
   };
   configJson = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args);

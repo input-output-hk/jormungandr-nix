@@ -198,10 +198,10 @@ logger:
   output: stderr
 rest:
   listen: ""127.0.0.1:8443""
-peer_2_peer:
+p2p:
   trusted_peers: []
   public_address: ""/ip4/127.0.0.1/tcp/8299""
-  topics_of_interests:
+  topics_of_interest:
     messages: low
     blocks: normal" | Out-File $WORKDIR"\"$CONFIG_PATH\config.yaml -Encoding Oem
 		write-host "configuration file: done" -ForegroundColor DarkGreen
