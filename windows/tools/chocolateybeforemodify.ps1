@@ -5,8 +5,11 @@ function Stop-Jormungandr {
 	param ($NAME)
 
 	[System.Diagnostics.Process[]]$PROCESSLIST = Get-Process -Name $NAME -ErrorAction SilentlyContinue
-	ForEach ($Process in $PROCESSLIST) {
-		$Process | Stop-Process -Force -Verbose
+	if ($PROCESSLIST) {
+		Write-Output "Found $NAME running.  Shutting down $NAME..."
+		ForEach ($Process in $PROCESSLIST) {
+			$Process | Stop-Process -Force
+		}
 	}
 }
 
