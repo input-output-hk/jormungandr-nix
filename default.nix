@@ -24,7 +24,7 @@ with import ./lib.nix; with lib;
 # Same for make-config.nix
 , storage ? "./storage"
 , rest_listen ? "127.0.0.1:8443"
-, rest_prefix ? ""
+, rest_prefix ? "api"
 , logger_level ? null
 , logger_format ? null
 , logger_output ? null
