@@ -19,11 +19,16 @@ writeText "jormungandr-nuspec" ''
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <tags>jormungandr</tags>
     <summary>Jormungandr: Cardano Node running on Rust</summary>
-    <description>This package will install IOHK's Jormungandr compiled binaries which provide Cardano Blockchain node capability running on Rust</description>
+    <description>This package will install IOHK's Jormungandr compiled binaries which provide Cardano Blockchain node capability running on Rust.
+
+Jormungandr is a node implementation with the initial aim to support the Ouroboros type of consensus protocol.  A node is a participant of a blockchain network, continuously making, sending, receiving, and validating blocks. Each node is responsible to make sure that all the rules of the protocol are followed.
+
+Once this chocolatey package is installed, bootstrap-jormungandr.bat can be executed to bootstrap a bft or genesis configuration with 1 faucet with a hardcoded amount.  jcli.exe and jormungandr.exe command line options and configuration options can be found in the documentation.</description>
     <docsUrl>https://input-output-hk.github.io/jormungandr/</docsUrl>
     <bugTrackerUrl>https://github.com/input-output-hk/jormungandr/issues</bugTrackerUrl>
     <projectSourceUrl>https://github.com/input-output-hk/jormungandr</projectSourceUrl>
     <releaseNotes>https://github.com/input-output-hk/jormungandr/releases</releaseNotes>
+    <licenseUrl>https://raw.githubusercontent.com/input-output-hk/jormungandr/master/LICENSE-APACHE</licenseUrl>
   </metadata>
   <files>
     <file src="tools/**" target="tools" />
