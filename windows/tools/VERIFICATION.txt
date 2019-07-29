@@ -2,7 +2,45 @@
 Verification is intended to assist the Chocolatey moderators and community
 in verifying that this package's contents are trustworthy.
 
-This package is published by IOHK.  The binaries included
-in this Chocolately package are compiled from source and
-released from the Jormungandr github repo:
+This package is published by Input Output HK Limited.  The binaries included
+in this Chocolately package are compiled from source and released from the
+Jormungandr github repo:
+
 https://github.com/input-output-hk/jormungandr
+
+These binaries are then digitally signed by Input Output HK Limited using
+a certificate issued by DigiCert EV Code Signing CA.
+
+To verify these Jormungandr Chocolatey binaries are authentic, use the
+following procedure to verify the digital signature on each:
+
+1) Navigate to the path of the Jormungandr binaries from the Chocolatey
+package.  For example:
+C:\ProgramData\chocolatey\lib\jormungandr\tools
+
+2) For each of the Jormungandr binaries (jcli.exe and jormungandr.exe),
+complete the following:
+
+a) Right click on the binary and select "Properties" from the context menu
+
+b) Select the "Digital Signatures" tab of the Properties menu by left
+clicking
+
+c) Verify in the signature list the name of the signer is
+"Input Output HK Limited"
+
+d) Left click on the "Input Output HK Limited" signer and then left click
+the "Details" button
+
+e) Verify the statement "This digital signature is OK" is present under
+"Digital Signature Information"
+
+f) Left click the "View Certificate" button
+
+g) Under the "General" tab, verify the certificate "Issued by" field is
+"DigiCert EV Code Signing CA (SHA256)"
+
+h) Left click the "Details" tab of the Certficate menu
+
+i) In the list of fields, scroll down to find the "Thumbprint" field and
+verify it matches: "dcfd5ae14fcf6c13f7f7fc59d005dd7cfedfa212"

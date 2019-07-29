@@ -12,7 +12,7 @@
 $CLI="jcli.exe"
 $NODE="jormungandr.exe"
 
-$WORKDIR=(get-location).path
+$WORKDIR=$env:LOCALAPPDATA+"\jormungandr"
 $MYCLI=Get-Command $CLI | Select-Object -ExpandProperty Definition $CLI
 $MYNODE=Get-Command $NODE | Select-Object -ExpandProperty Definition $NODE
 
@@ -58,7 +58,7 @@ if([System.IO.File]::Exists($MYCLI)){
 	if(![System.IO.Directory]::Exists($WORKDIR+"\"+$CONFIG_PATH)){
 		[System.IO.Directory]::CreateDirectory($WORKDIR+"\"+$CONFIG_PATH)
 	} else {
-		Write-host "Found an existing CONFIG folder ($CONFIG_PATH) Remove it? (Default is Yes)" -ForegroundColor Yellow
+		Write-host "Found an existing CONFIG folder ($WORKDIR\$CONFIG_PATH) Remove it? (Default is Yes)" -ForegroundColor Yellow
     $Readhost = Read-Host " ( Y / n ) "
     Switch ($ReadHost)
      {
@@ -74,7 +74,7 @@ if([System.IO.File]::Exists($MYCLI)){
 	if(![System.IO.Directory]::Exists($WORKDIR+"\"+$DATA_PATH)){
 		[System.IO.Directory]::CreateDirectory($WORKDIR+"\"+$DATA_PATH)
 	} else {
-		Write-host "Found an existing DATA folder ($DATA_PATH) Remove it? (Default is Yes)" -ForegroundColor Yellow
+		Write-host "Found an existing DATA folder ($WORKDIR\$DATA_PATH) Remove it? (Default is Yes)" -ForegroundColor Yellow
     $Readhost = Read-Host " ( Y / n ) "
     Switch ($ReadHost)
      {
@@ -90,7 +90,7 @@ if([System.IO.File]::Exists($MYCLI)){
 	if(![System.IO.Directory]::Exists($WORKDIR+"\"+$SECRET_PATH)){
 		[System.IO.Directory]::CreateDirectory($WORKDIR+"\"+$SECRET_PATH)
 	} else {
-		Write-host "Found an existing SECRET folder ($SECRET_PATH) Remove it? (Default is Yes)" -ForegroundColor Yellow
+		Write-host "Found an existing SECRET folder ($WORKDIR\$SECRET_PATH) Remove it? (Default is Yes)" -ForegroundColor Yellow
     $Readhost = Read-Host " ( y / n ) "
     Switch ($ReadHost)
      {
@@ -222,11 +222,11 @@ p2p:
     Switch ($ReadHost)
     {
 		Y {
-			& $MYNODE --genesis-block $CONFIG_PATH\block-0.bin --config $CONFIG_PATH\config.yaml --secret $SECRET_PATH\poolsecret1.yaml
+			& $MYNODE --genesis-block $WORKDIR"\"$CONFIG_PATH\block-0.bin --config $WORKDIR"\"$CONFIG_PATH\config.yaml --secret $WORKDIR"\"$SECRET_PATH\poolsecret1.yaml
 		}
 		Default {
 			write-host "OK. To manually start the node:"  -ForegroundColor GREEN
-			write-host "./$NODE --genesis-block $CONFIG_PATH\block-0.bin --config $CONFIG_PATH\config.yaml --secret $SECRET_PATH\poolsecret1.yaml" -ForegroundColor GREEN
+			write-host "$NODE --genesis-block $WORKDIR\$CONFIG_PATH\block-0.bin --config $WORKDIR\$CONFIG_PATH\config.yaml --secret $WORKDIR\$SECRET_PATH\poolsecret1.yaml" -ForegroundColor GREEN
 		}
      }
 
