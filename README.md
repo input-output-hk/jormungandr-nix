@@ -45,7 +45,9 @@ To drop into a shell with all configuraton files generated for you:
 nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/master.tar.gz
 ```
 
-Once in the shell run `run-jormungandr` to start jormungandr.
+Once in the shell run `run-jormungandr` to start [Jormungandr](https://input-output-hk.github.io/jormungandr/) or `run-jormungandr-and-cardano-wallet` to start both Jormungandr and [Cardano Wallet](https://github.com/input-output-hk/cardano-wallet) API.
+
+Note that to use Cardano Wallet you need to start `nix-shell` with `--argstr block0_consensus bft`, as Cardano Wallet is not yet compatible with `genesis_praos`.
 
 To regenerate the config (in case of incompatible change in jormungandr after updating the commit), run `generate-config`
 
@@ -53,6 +55,7 @@ You can tweak the blockchain configuration through nix-shell parameters, eg.:
 ```
 nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
           --arg numberOfStakePools 2 \
+          --argstr block0_consensus bft \
           --argstr logger_output gelf \
           --argstr storage "/tmp/jormungandr-storage" \
           https://github.com/input-output-hk/jormungandr-nix/archive/32ea0bf1c78307f797b6b4587191109a3ec9a319.tar.gz \

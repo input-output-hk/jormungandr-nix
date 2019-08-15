@@ -2,17 +2,18 @@
 # The version can be overridden for debugging purposes by setting
 # NIX_PATH=iohk_nix=/path/to/iohk-nix
 let
-  iohkNix = import (
-  let try = builtins.tryEval <iohk_nix>;
-  in if try.success
-  then builtins.trace "using host <iohk_nix>" try.value
-  else
-    let
-      spec = builtins.fromJSON (builtins.readFile ./nix/iohk-nix-src.json);
-    in builtins.fetchTarball {
-      url = "${spec.url}/archive/${spec.rev}.tar.gz";
-      inherit (spec) sha256;
-    }) { nixpkgsJsonOverride = ./nix/nixpkgs-src.json; };
+  iohkNixSrc = 
+    let try = builtins.tryEval <iohk_nix>;
+    in if try.success
+    then builtins.trace "using host <iohk_nix>" try.value
+    else
+      let
+        spec = builtins.fromJSON (builtins.readFile ./nix/iohk-nix-src.json);
+      in builtins.fetchTarball {
+        url = "${spec.url}/archive/${spec.rev}.tar.gz";
+        inherit (spec) sha256;
+      };
+  iohkNix = import iohkNixSrc { nixpkgsJsonOverride = ./nix/nixpkgs-src.json; };
   arionPkgs = import (let
       spec = builtins.fromJSON (builtins.readFile ./nix/arion-src.json);
     in builtins.fetchTarball {
@@ -47,7 +48,7 @@ let
 in
 rec {
   inherit iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools choco;
-  pkgs = rustPkgs.extend (self: super: {
+  pkgs = (rustPkgs.extend (self: super: {
     uuidgen = if self.stdenv.isLinux
       then super.runCommand "uuidgen" {} ''
         mkdir $out/bin -pv
@@ -57,6 +58,6 @@ rec {
         mkdir $out/bin -pv
         ln -sv /usr/bin/uuidgen $out/bin/uuidgen
       '';
-  });
+  })).extend (import (iohkNixSrc + "/overlays/cardano"));
   inherit (pkgs) lib;
 }

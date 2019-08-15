@@ -5,7 +5,7 @@
 , writeScriptBin
 , block0_consensus
 , isProduction ? false
-, addrTypeFlag ? if (isProduction) then "" else "--testing"
+, addrTypeFlag ? if (isProduction) then "" else "--testing --prefix=ta"
 , numberOfFaucets
 , numberOfStakePools
 , numberOfLeaders
@@ -60,7 +60,7 @@ with lib; ''
   FAUCET_PK_${i}=$(echo $FAUCET_SK_${i} | jcli key to-public)
   echo $FAUCET_SK_${i} > secrets/stake_${i}_key.sk
   echo $FAUCET_PK_${i} > stake_${i}_key.pk
-  FAUCET_ADDR_${i}=$(jcli address account $FAUCET_PK_${i} ${addrTypeFlag})
+  FAUCET_ADDR_${i}=$(jcli address account ${addrTypeFlag} $FAUCET_PK_${i})
   '' + (if (block0_consensus == "bft") then ''
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$FAUCET_SK_${i}/g" > secrets/secret_bft_stake_${i}.yaml
   '' else "") + ''
