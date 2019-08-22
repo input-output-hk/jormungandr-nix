@@ -32,20 +32,19 @@ This will output a nix-store directory which contains the unsigned jormungandr c
 
 ## Building Signed Chocolatey Packages
 
-- ssh to sarov
+- ssh to the signing server
 - Pull the latest jormungandr release windows gnu binary into the unsigned dir and unzip:
 
 ```sh
 cd unsigned
 # Fill in the actual version here:
 version="${version}"
-curl -L -o release-${version}.zip https://github.com/input-output-hk/jormungandr/releases/download/v${version}/jormungandr-v${version}-x86_64-pc-windows-gnu.zip
 
-# Verify the sha hash is correct per the `windows/default.nix` file
-sha256sum release-${version}.zip
+# Download the latest release and verify the sha hash is correct per the `windows/default.nix` file
+nix-prefetch-url https://github.com/input-output-hk/jormungandr/releases/download/v${version}/jormungandr-v${version}-x86_64-pc-windows-gnu.zip
 
 # Unzip
-nix run nixpkgs.unzip -c unzip release-${version}.zip
+nix run nixpkgs.unzip -c unzip $NIX_STORE_PATH_TO_ZIP
 ```
 
 - Move to the signing directory and sign the two jormungandr windows binaries, then zip the files up:
@@ -59,15 +58,7 @@ nix run nixpkgs.zip -c zip release-${version}-signed.zip jcli.exe jormungandr.ex
 
 - scp, or otherwise copy the signed binary zip to your server of choice for completing the chocolatey signed build.
 
-- Suggested cleanup on the signing server: delete the signed binaries and move the unsigned binaries and zip to an archive folder:
-
-```sh
-# From the 'signed' folder
-rm jcli.exe jormungandr.exe release-${version}-signed.zip
-cd ../unsigned
-mkdir -p archive/jormungandr/${version}
-mv {jcli.exe,jormungandr.exe,release-${version}.zip} archive/jormungandr/${version}
-```
+- Suggested cleanup on the signing server: delete binaries and zip files created in the signed and unsigned directories.
 
 - On your server of choice for completing the chocolatey signed build, move the signed binary zip to the root of the jormungandr-nix git directory.
 
@@ -76,7 +67,7 @@ mv {jcli.exe,jormungandr.exe,release-${version}.zip} archive/jormungandr/${versi
 ```sh
 # Fill in the actual version here:
 version="${version}"
-nix-build installers.nix -A chocoPackage --arg chocoSignedZip "/release-${version}.zip"
+nix-build installers.nix -A chocoPackage --arg chocoSignedZip "/release-${version}-signed.zip"
 ```
 
 This will output a nix-store directory which contains the signed jormungandr chocolatey package in the form `jormungandr.${version}.nupkg`.
