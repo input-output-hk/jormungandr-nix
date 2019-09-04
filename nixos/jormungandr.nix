@@ -103,7 +103,7 @@ in {
       listenAddress = mkOption {
         type = types.str;
         default = types.nullOr types.str;
-        example = "0.0.0.0:8606";
+        example = "/ip4/0.0.0.0/tcp/8606";
         description = ''
           Local socket address to listen to, if different from public address.
           The IP address can be given as 0.0.0.0 or :: to bind to all
