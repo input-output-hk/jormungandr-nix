@@ -64,7 +64,7 @@ with lib; ''
   '' + (if (block0_consensus == "bft") then ''
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$FAUCET_SK_${i}/g" > secrets/secret_bft_stake_${i}.yaml
   '' else "") + ''
-  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/FAUCET_ADDR_${i}/$FAUCET_ADDR_${toString i}/g" )
+  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"FAUCET_ADDR_${i}\"/\"$FAUCET_ADDR_${toString i}\"/g" )
 
   '') (range 1 numberOfFaucets)) + ''
 
@@ -73,7 +73,7 @@ with lib; ''
   LEADER_SK_${i}=$(jcli key generate --type=Ed25519)
   echo $LEADER_SK_${i} > secrets/leader_${i}_key.sk
   LEADER_PK_${i}=$(echo $LEADER_SK_${i} | jcli key to-public)
-  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/LEADER_PK_${i}/$LEADER_PK_${i}/g" )
+  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"LEADER_PK_${i}\"/\"$LEADER_PK_${i}\"/g" )
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$LEADER_SK_${i}/g" > secrets/secret_bft_leader_${i}.yaml
 
   '') (range 1 numberOfLeaders)) + ''
@@ -111,8 +111,8 @@ with lib; ''
   STAKE_DELEGATION_CERT_${i}=$(cat stake_${i}_delegation.signcert)
 
   echo "$GENESIS_SECRET_JSON" | sed -e "s/SIG_KEY/$POOL_KES_SK_${i}/g" | sed -e "s/VRF_KEY/$POOL_VRF_SK_${i}/g" |  sed -e "s/NODE_ID/$STAKE_POOL_ID_${i}/g" > secrets/secret_pool_${i}.yaml
-  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/STAKE_POOL_CERT_${i}/$STAKE_POOL_CERT_${i}/g" )
-  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/STAKE_DELEGATION_CERT_${i}/$STAKE_DELEGATION_CERT_${i}/g" )
+  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"STAKE_POOL_CERT_${i}\"/\"$STAKE_POOL_CERT_${i}\"/g" )
+  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"STAKE_DELEGATION_CERT_${i}\"/\"$STAKE_DELEGATION_CERT_${i}\"/g" )
 
   '') (range 1 numberOfStakePools))
   + ''
