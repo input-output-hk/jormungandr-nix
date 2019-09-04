@@ -100,6 +100,17 @@ in {
         '';
       };
 
+      listenAddress = mkOption {
+        type = types.str;
+        default = types.nullOr types.str;
+        example = "0.0.0.0:8606";
+        description = ''
+          Local socket address to listen to, if different from public address.
+          The IP address can be given as 0.0.0.0 or :: to bind to all
+          network interfaces.
+        '';
+      };
+
       publicId = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -190,11 +201,14 @@ in {
           };
           p2p = {
             public_address = cfg.publicAddress;
+
             trusted_peers = cfg.trustedPeersAddresses;
             topics_of_interest = cfg.topicsOfInterest;
-          } // (if (cfg.publicId != null) then {
+          } // (lib.optionalAttrs (cfg.listenAddress != null) {
+            listen_address = cfg.listenAddress;
+          }) // (lib.optionalAttrs (cfg.publicId != null) {
             public_id = cfg.publicId;
-          } else {});
+          });
         });
         secretsArgs = lib.concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
