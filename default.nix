@@ -6,7 +6,7 @@ with import ./lib.nix; with lib;
 , color ? true
 , faucetAmounts ? [ 1000000000 1000000000 1000000000 ]
 , numberOfStakePools ? if (block0_consensus == "bft") then 0 else (builtins.length faucetAmounts)
-, numberOfLeaders ? 1
+, numberOfLeaders ? if (numberOfStakePools == 0) then 1 else numberOfStakePools
 , rootDir ? "/tmp"
 # need to declare other make-genesis.nix parameters to be able to pass them:
 , block0_date ? null
