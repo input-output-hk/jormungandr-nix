@@ -109,14 +109,6 @@ in {
         '';
       };
 
-      rest.prefix = mkOption {
-        type = types.str;
-        default = "api";
-        description = ''
-          Http prefix of the rest api.
-        '';
-      };
-
       logger.level = mkOption {
         type = types.string;
         default = "info";
@@ -187,7 +179,6 @@ in {
           };
           rest = {
             listen = cfg.rest.listenAddress;
-            prefix = cfg.rest.prefix;
           };
           p2p = {
             public_address = cfg.publicAddress;

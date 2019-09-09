@@ -2,7 +2,6 @@
 , storage
 , topics_of_interest
 , rest_listen
-, rest_prefix
 , logger_level ? "info"
 , logger_format ? "plain"
 , logger_output ? "stderr"
@@ -28,7 +27,6 @@ with lib; builtins.toJSON {
   };
   rest = {
     listen = rest_listen;
-    prefix = rest_prefix;
   };
   p2p = {
     public_address = public_address;
