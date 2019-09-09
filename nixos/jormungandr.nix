@@ -101,22 +101,13 @@ in {
       };
 
       listenAddress = mkOption {
-        type = types.str;
-        default = types.nullOr types.str;
+        type = types.nullOr types.str;
+        default = null;
         example = "/ip4/0.0.0.0/tcp/8606";
         description = ''
           Local socket address to listen to, if different from public address.
           The IP address can be given as 0.0.0.0 or :: to bind to all
           network interfaces.
-        '';
-      };
-
-      publicId = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = ''
-          the public identifier send to the other nodes in the p2p network.
-          If not set it will be randomly generated.
         '';
       };
 
@@ -129,7 +120,7 @@ in {
       };
 
       logger.level = mkOption {
-        type = types.string;
+        type = types.str;
         default = "info";
         example = "debug";
         description = ''
@@ -186,13 +177,13 @@ in {
       script = let
         configJson = builtins.toFile "config.yaml" (builtins.toJSON {
           storage = "/var/lib/" + cfg.stateDir;
-          logger = {
+          log = {
             level = cfg.logger.level;
             format = cfg.logger.format;
             output = (if (cfg.logger.output == "gelf") then {
               gelf = {
                 backend = cfg.logger.backend;
-                logs_id = cfg.logger.logs-id;
+                log_id = cfg.logger.logs-id;
               };
             } else cfg.logger.output);
           };
@@ -206,8 +197,6 @@ in {
             topics_of_interest = cfg.topicsOfInterest;
           } // (lib.optionalAttrs (cfg.listenAddress != null) {
             listen_address = cfg.listenAddress;
-          }) // (lib.optionalAttrs (cfg.publicId != null) {
-            public_id = cfg.publicId;
           });
         });
         secretsArgs = lib.concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
