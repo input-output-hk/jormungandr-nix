@@ -28,6 +28,14 @@ in {
         '';
       };
 
+      withBackTraces = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Run with RUST_BACKTRACE=1.
+        '';
+      };
+
       stateDir = mkOption {
         type = types.str;
         default = "jormungandr";
@@ -190,7 +198,7 @@ in {
         });
         secretsArgs = lib.concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
-        ${cfg.package}/bin/jormungandr --genesis-block ${cfg.block0} --config ${configJson}${secretsArgs}
+        ${if cfg.withBackTraces then "RUST_BACKTRACE=1 " else ""}${cfg.package}/bin/jormungandr --genesis-block ${cfg.block0} --config ${configJson}${secretsArgs}
       '';
       serviceConfig = {
         User = "jormungandr";
