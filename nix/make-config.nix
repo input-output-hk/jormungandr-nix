@@ -33,7 +33,7 @@ with lib; builtins.toJSON {
   p2p = {
     public_address = public_address;
     trusted_peers = if (trusted_peers == "") then [] else
-      imap1 (i: a: { id = i; address = a; }) (splitString "," trusted_peers);
+      (splitString "," trusted_peers);
     topics_of_interest = listToAttrs (map (topic:
       let
         split = splitString "=" topic;
