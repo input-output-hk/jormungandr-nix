@@ -267,7 +267,7 @@ let
       ${header}
       source ${jcli}/scripts/jcli-helpers
 
-      echo "To start jormungandr run: \"run-jormungandr\" which expends to:"
+      echo "To start jormungandr run: \"run-jormungandr\" which expands to:"
       echo " ${run-command {}}"
       echo ""
       echo "To connect using CLI REST:"
