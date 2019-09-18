@@ -2,10 +2,11 @@ with import ./lib.nix; with lib;
 { dockerEnv ? false
 , package ? pkgs.jormungandr
 , jcli ? pkgs.jormungandr-cli
+, cardano-wallet ? pkgs.cardano-wallet-jormungandr
 , block0_consensus ? "genesis_praos"
 , color ? true
 , faucetAmounts ? [ 1000000000 1000000000 1000000000 ]
-, numberOfStakePools ? if (block0_consensus == "bft") then 0 else (builtins.length faucetAmounts)
+, numberOfStakePools ? if (block0_consensus == "bft") then 1 else (builtins.length faucetAmounts)
 , numberOfLeaders ? 1
 , rootDir ? "/tmp"
 # need to declare other make-genesis.nix parameters to be able to pass them:
@@ -40,18 +41,21 @@ let
 
   numberOfFaucets = builtins.length faucetAmounts;
 
+  httpPort = builtins.elemAt (builtins.split ":" rest_listen) 2;
+
   httpHost = "http://${rest_listen}/${rest_prefix}";
 
   genesisGeneratedArgs = {
     inherit block0_consensus slot_duration linear_fees_constant linear_fees_certificate linear_fees_coefficient;
     consensus_leader_ids = map (i: "LEADER_PK_${toString i}") (range 1 numberOfLeaders);
-    initial = [{
-      fund = imap1 (i: a: {
+    initial = imap1 (i: a: { fund = [{
         address =  "FAUCET_ADDR_${toString i}";
-        value = a;}) faucetAmounts;
-      }] ++ concatMap (i: [
-      { cert = "STAKE_POOL_CERT_${toString i}"; }
-      { cert = "STAKE_DELEGATION_CERT_${toString i}"; }]) (range 1 (numberOfStakePools));
+        value = a;
+      }];}) faucetAmounts
+      ++ builtins.fromJSON (builtins.readFile ./static-test-funds.json)
+      ++ concatMap (i: [
+        { cert = "STAKE_POOL_CERT_${toString i}"; }
+        { cert = "STAKE_DELEGATION_CERT_${toString i}"; }]) (range 1 (numberOfStakePools));
   };
   genesisJson = (pkgs.callPackage ./nix/make-genesis.nix (genesisGeneratedArgs // args));
 
@@ -81,9 +85,10 @@ let
       "--secret secrets/secret_pool_${toString i}.yaml "
     ) (range 1 (numberOfStakePools))) + (if (block0_consensus == "bft") then (concatMapStrings (i:
       "--secret secrets/secret_bft_stake_${toString i}.yaml "
-    ) (range 1 numberOfFaucets)) else "")+ (concatMapStrings (i:
+    ) (range 1 numberOfFaucets)) else "") + (concatMapStrings (i:
       "--secret secrets/secret_bft_leader_${toString i}.yaml "
-    ) (range 1 (numberOfLeaders)));
+    ) (range 1 (numberOfLeaders)))
+    + "--secret ${./static-bft-leader-secret.yaml}";
 
   header = with builtins; (if color then ''\
     GREEN=`printf "\033[0;32m"`
@@ -96,9 +101,6 @@ let
     BLUE=""
     WHITE=""
     '') + ''
-
-
-
     echo "##############################################################################"
     echo ""
     echo "* CLI version: ''${GREEN}${jcli.version}''${WHITE}"
@@ -114,7 +116,7 @@ let
     echo "########################################################"
     echo ""
     '' + (concatMapStrings (idx: let i = toString idx; n = toString (idx -1); in ''
-    echo " Faucet account ${i}: ''${GREEN}`jq -r '.initial[0].fund[${n}].address' < genesis.yaml`''${WHITE}"
+    echo " Faucet account ${i}: ''${GREEN}`jq -r '.initial[${n}].fund[0].address' < genesis.yaml`''${WHITE}"
     echo "  * public:  ''${BLUE}`cat stake_${i}_key.pk`''${WHITE}"
     echo "  * secret:  ''${RED}`cat secrets/stake_${i}_key.sk`''${WHITE}"
     echo "  * amount:  ''${GREEN}${toString (elemAt faucetAmounts (idx -1))}''${WHITE}"
@@ -150,11 +152,13 @@ let
       mv "${archiveFileName}" "${archiveFileName}.bak"
     fi
     zip -q -r "${archiveFileName}" block-0.bin config.yaml genesis.yaml secrets *cert
+
+    ${header}
   '';
 
   run-jormungandr-script = with pkgs; writeScriptBin "run-jormungandr" (''
     #!${pkgs.runtimeShell}
-    echo "Running ${run-command {}}"
+    echo "Running ${run-command {}} $@"
   '' + (if (logger_output == "gelf") then ''
     echo "##############################################################################"
     echo ""
@@ -164,8 +168,24 @@ let
     echo ""
     ''
   else "") + ''
-    ${package}/bin/${run-command {}}
+    exec ${package}/bin/${run-command {}} $@
   '');
+
+  cardano-wallet-serve-script = with pkgs; writeScriptBin "cardano-wallet-serve" ''
+    #!${pkgs.runtimeShell}
+    GENESIS_HASH=`jcli genesis hash --input block-0.bin`
+    exec cardano-wallet-jormungandr serve --node-port ${httpPort} --genesis-hash $GENESIS_HASH --database ./wallet.db $@
+  '';
+
+  run-jormungandr-and-cardano-wallet-script = with pkgs; writeScriptBin "run-jormungandr-and-cardano-wallet" ''
+    #!${pkgs.runtimeShell}
+    exec ${pkgs.parallel}/bin/parallel --line-buffer ::: run-jormungandr cardano-wallet-serve
+  '';
+
+  display-test-wallets-mnemonics-script = with pkgs; writeScriptBin "display-test-wallets-mnemonics" ''
+    #!${pkgs.runtimeShell}
+    cat --number ${./static-test-funds-mnemonics.txt}
+  '';
 
   jormungandr-bootstrap = with pkgs; writeScriptBin "bootstrap" (''
     #!${pkgs.runtimeShell}
@@ -237,9 +257,13 @@ let
       jcli
       gen-config-script
       run-jormungandr-script
+      cardano-wallet-serve-script
+      run-jormungandr-and-cardano-wallet-script
       jormungandr-bootstrap
       jq
       send-transaction
+      cardano-wallet
+      display-test-wallets-mnemonics-script
     ] ++ lib.optional dockerEnv arionPkgs.arion;
     shellHook = ''
       echo "Jormungandr Demo" '' + (if color then ''\
@@ -262,18 +286,27 @@ let
       '' else "") + ''
       if [ ! -f config.yaml ]; then
         generate-config
+      else
+        ${header}
       fi
 
-      ${header}
       source ${jcli}/scripts/jcli-helpers
 
       echo "To start jormungandr run: \"run-jormungandr\" which expands to:"
       echo " ${run-command {}}"
       echo ""
-      echo "To connect using CLI REST:"
+      echo "To serve the cardano-wallet api on top of a running jormungandr, run: \"cardano-wallet-serve\""
+      echo ""
+      echo "To run both jormungandr and cardano-wallet api at once, run: \"run-jormungandr-and-cardano-wallet\""
+      echo ""
+      echo "To connect directly to jormungandr using CLI REST:"
       echo "  jcli rest v0 <CMD> --host \"${httpHost}\""
       echo "For example:"
       echo "  jcli rest v0 node stats get -h \"${httpHost}\""
+      echo ""
+      echo "To use cardano wallet api (need \"nix-shell --argstr block0_consensus bft\") see:"
+      echo "  cardano-wallet-jormungandr --help"
+      echo "(and \"display-test-wallets-mnemonics\" to restore an exising wallet from its mnemonics passphrase)"
       echo ""
       echo "Available helper scripts:"
       echo " - send-transaction"
@@ -282,6 +315,7 @@ let
       echo " - ./faucet-send-money.sh"
       echo " - jcli-stake-delegate-new"
       echo " - jcli-generate-account"
+      echo " - jcli-generate-account-export-suffix"
       echo " - jcli-generate-account-export-suffix"
     '';
   };
