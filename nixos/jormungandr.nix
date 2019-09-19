@@ -28,6 +28,14 @@ in {
         '';
       };
 
+      withBackTraces = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Run with RUST_BACKTRACE=1.
+        '';
+      };
+
       stateDir = mkOption {
         type = types.str;
         default = "jormungandr";
@@ -92,12 +100,14 @@ in {
         '';
       };
 
-      publicId = mkOption {
+      listenAddress = mkOption {
         type = types.nullOr types.str;
         default = null;
+        example = "/ip4/0.0.0.0/tcp/8606";
         description = ''
-          the public identifier send to the other nodes in the p2p network.
-          If not set it will be randomly generated.
+          Local socket address to listen to, if different from public address.
+          The IP address can be given as 0.0.0.0 or :: to bind to all
+          network interfaces.
         '';
       };
 
@@ -109,16 +119,8 @@ in {
         '';
       };
 
-      rest.prefix = mkOption {
-        type = types.str;
-        default = "api";
-        description = ''
-          Http prefix of the rest api.
-        '';
-      };
-
       logger.level = mkOption {
-        type = types.string;
+        type = types.str;
         default = "info";
         example = "debug";
         description = ''
@@ -175,31 +177,31 @@ in {
       script = let
         configJson = builtins.toFile "config.yaml" (builtins.toJSON {
           storage = "/var/lib/" + cfg.stateDir;
-          logger = {
+          log = {
             level = cfg.logger.level;
             format = cfg.logger.format;
             output = (if (cfg.logger.output == "gelf") then {
               gelf = {
                 backend = cfg.logger.backend;
-                logs_id = cfg.logger.logs-id;
+                log_id = cfg.logger.logs-id;
               };
             } else cfg.logger.output);
           };
           rest = {
             listen = cfg.rest.listenAddress;
-            prefix = cfg.rest.prefix;
           };
           p2p = {
             public_address = cfg.publicAddress;
+
             trusted_peers = cfg.trustedPeersAddresses;
             topics_of_interest = cfg.topicsOfInterest;
-          } // (if (cfg.publicId != null) then {
-            public_id = cfg.publicId;
-          } else {});
+          } // (lib.optionalAttrs (cfg.listenAddress != null) {
+            listen_address = cfg.listenAddress;
+          });
         });
         secretsArgs = lib.concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
-        ${cfg.package}/bin/jormungandr --genesis-block ${cfg.block0} --config ${configJson}${secretsArgs}
+        ${if cfg.withBackTraces then "RUST_BACKTRACE=1 " else ""}${cfg.package}/bin/jormungandr --genesis-block ${cfg.block0} --config ${configJson}${secretsArgs}
       '';
       serviceConfig = {
         User = "jormungandr";

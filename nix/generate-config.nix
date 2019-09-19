@@ -96,7 +96,9 @@ with lib; ''
   jcli certificate new stake-pool-registration \
       --kes-key $POOL_KES_PK_${i} \
       --vrf-key $POOL_VRF_PK_${i} \
-      --serial 1010101010 > stake_pool_${i}.cert
+      --owner $LEADER_PK_${i} \
+      --serial 1010101010 \
+      --management-threshold 1 --start-validity 0 > stake_pool_${i}.cert
 
   cat stake_pool_${i}.cert | jcli certificate sign secrets/stake_${i}_key.sk > stake_pool_${i}.signcert
 

@@ -2,7 +2,6 @@
 , storage
 , topics_of_interest
 , rest_listen
-, rest_prefix
 , logger_level ? "info"
 , logger_format ? "plain"
 , logger_output ? "stderr"
@@ -28,12 +27,11 @@ with lib; builtins.toJSON {
   };
   rest = {
     listen = rest_listen;
-    prefix = rest_prefix;
   };
   p2p = {
     public_address = public_address;
     trusted_peers = if (trusted_peers == "") then [] else
-      imap1 (i: a: { id = i; address = a; }) (splitString "," trusted_peers);
+      (splitString "," trusted_peers);
     topics_of_interest = listToAttrs (map (topic:
       let
         split = splitString "=" topic;

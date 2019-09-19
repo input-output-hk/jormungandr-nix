@@ -92,7 +92,6 @@ that way jormungandr logs will be sent to iohk testnet log server and will be in
 | `--arg kes_update_speed` | `43200` (12 hours) | The speed to update the KES Key in seconds |
 | `--argstr storage` | `./storage` | path to the storage. |
 | `--argstr rest_listen` | `127.0.0.1:8443` | listen address of the rest endpoint |
-| `--argstr rest_prefix` | `api` | rest api prefix |
 | `--arg logger_level` | `info` | logger level:  "off", "critical", "error", "warn", "info", "debug", "trace".
 | `--argstr logger_format` | `plain` | log output format - `plain` or `json`. |
 | `--argstr logger_output` | `stderr` | log output - `stderr`, `gelf` (graylog), `syslog` (unix only) or `journald` |

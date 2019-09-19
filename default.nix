@@ -6,7 +6,7 @@ with import ./lib.nix; with lib;
 , color ? true
 , faucetAmounts ? [ 1000000000 1000000000 1000000000 ]
 , numberOfStakePools ? if (block0_consensus == "bft") then 0 else (builtins.length faucetAmounts)
-, numberOfLeaders ? 1
+, numberOfLeaders ? if (numberOfStakePools == 0) then 1 else numberOfStakePools
 , rootDir ? "/tmp"
 # need to declare other make-genesis.nix parameters to be able to pass them:
 , block0_date ? null
@@ -24,7 +24,6 @@ with import ./lib.nix; with lib;
 # Same for make-config.nix
 , storage ? "./storage"
 , rest_listen ? "127.0.0.1:8443"
-, rest_prefix ? "api"
 , logger_level ? null
 , logger_format ? null
 , logger_output ? null
@@ -40,7 +39,7 @@ let
 
   numberOfFaucets = builtins.length faucetAmounts;
 
-  httpHost = "http://${rest_listen}/${rest_prefix}";
+  httpHost = "http://${rest_listen}/api";
 
   genesisGeneratedArgs = {
     inherit block0_consensus slot_duration linear_fees_constant linear_fees_certificate linear_fees_coefficient;
@@ -60,7 +59,7 @@ let
   archiveFileName = baseDirName + "-config.zip";
 
   configGeneratedArgs = {
-    inherit topics_of_interest rest_listen rest_prefix storage;
+    inherit topics_of_interest rest_listen storage;
     logs_id = if (logs_id == null) then "LOGS_ID" else logs_id;
   };
   configJson = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args);
