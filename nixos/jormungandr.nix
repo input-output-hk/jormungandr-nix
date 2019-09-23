@@ -10,12 +10,13 @@ in {
   options = {
 
     services.jormungandr = {
-      enable = mkOption {
+      enable = mkEnableOption "jormungandr";
+
+      enableExplorer = mkOption {
         type = types.bool;
         default = false;
         description = ''
-          Enable jormungandr, a node implementing ouroboros protocols
-          (the blockchain protocols running cardano).
+          Enables explorer graphql backend in jormungandr
         '';
       };
 
@@ -45,8 +46,15 @@ in {
         '';
       };
 
+      genesisBlockHash = mkOption {
+        type = types.str;
+        description = ''
+          Genesis Block Hash
+        '';
+      };
       block0 = mkOption {
-        type = types.path;
+        type = types.nullOr types.path;
+        default = null;
         description = ''
           Path to the genesis block (the block0) of the blockchain.
         '';
@@ -120,7 +128,7 @@ in {
       };
 
       logger.level = mkOption {
-        type = types.str;
+        type = types.enum [ "off" "critical" "error" "warning" "info" "debug" "trace"];
         default = "info";
         example = "debug";
         description = ''
@@ -138,7 +146,7 @@ in {
       };
 
       logger.output = mkOption {
-        type = types.str;
+        type = types.enum [ "stderr" "syslog" "journald" "gelf" ];
         default = "stderr";
         example = "syslog";
         description = ''
@@ -175,7 +183,7 @@ in {
       after         = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       script = let
-        configJson = builtins.toFile "config.yaml" (builtins.toJSON {
+        configJson = builtins.toFile "config.yaml" (builtins.toJSON ({
           storage = "/var/lib/" + cfg.stateDir;
           log = {
             level = cfg.logger.level;
@@ -195,13 +203,20 @@ in {
 
             trusted_peers = cfg.trustedPeersAddresses;
             topics_of_interest = cfg.topicsOfInterest;
-          } // (lib.optionalAttrs (cfg.listenAddress != null) {
+          } // optionalAttrs (cfg.listenAddress != null) {
             listen_address = cfg.listenAddress;
-          });
-        });
-        secretsArgs = lib.concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
+          };
+        } // optionalAttrs cfg.enableExplorer {
+          explorer = {
+            enabled = true;
+          };
+        }));
+        secretsArgs = concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
-        ${if cfg.withBackTraces then "RUST_BACKTRACE=1 " else ""}${cfg.package}/bin/jormungandr --genesis-block ${cfg.block0} --config ${configJson}${secretsArgs}
+        ${optionalString cfg.withBackTraces "RUST_BACKTRACE=1"} ${cfg.package}/bin/jormungandr \
+        ${optionalString (cfg.block0 != null) "--genesis-block ${cfg.block0}"} \
+        ${optionalString (cfg.genesisBlockHash != null) "--genesis-block-hash ${cfg.genesisBlockHash}"} \
+        --config ${configJson}${secretsArgs}
       '';
       serviceConfig = {
         User = "jormungandr";
