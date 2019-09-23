@@ -11,6 +11,7 @@
 , numberOfLeaders
 , configJson
 , configJsonGelf
+, genesis-block-hash
 , genesisJson
 , genesisSecretJson
 , bftSecretJson
@@ -31,11 +32,12 @@ with lib; ''
     ${configJsonGelf}
   EOF
   )
-
+  ${lib.optionalString (genesis-block-hash == null) ''
   GENESIS_JSON=$(cat <<'EOF'
     ${genesisJson}
   EOF
   )
+''}
 
   GENESIS_SECRET_JSON=$(cat <<'EOF'
     ${genesisSecretJson}
@@ -63,7 +65,7 @@ with lib; ''
   FAUCET_ADDR_${i}=$(jcli address account $FAUCET_PK_${i} ${addrTypeFlag})
   '' + (if (block0_consensus == "bft") then ''
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$FAUCET_SK_${i}/g" > secrets/secret_bft_stake_${i}.yaml
-  '' else "") + ''
+  '' else "") + lib.optionalString (genesis-block-hash == null) ''
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"FAUCET_ADDR_${i}\"/\"$FAUCET_ADDR_${toString i}\"/g" )
 
   '') (range 1 numberOfFaucets)) + ''
@@ -73,7 +75,8 @@ with lib; ''
   LEADER_SK_${i}=$(jcli key generate --type=Ed25519)
   echo $LEADER_SK_${i} > secrets/leader_${i}_key.sk
   LEADER_PK_${i}=$(echo $LEADER_SK_${i} | jcli key to-public)
-  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"LEADER_PK_${i}\"/\"$LEADER_PK_${i}\"/g" )
+  ${lib.optionalString (genesis-block-hash == null) ''
+  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"LEADER_PK_${i}\"/\"$LEADER_PK_${i}\"/g" ) ''}
   echo "$BFT_SECRET_JSON" | sed -e "s/SIG_KEY/$LEADER_SK_${i}/g" > secrets/secret_bft_leader_${i}.yaml
 
   '') (range 1 numberOfLeaders)) + ''
@@ -113,17 +116,22 @@ with lib; ''
   STAKE_DELEGATION_CERT_${i}=$(cat stake_${i}_delegation.signcert)
 
   echo "$GENESIS_SECRET_JSON" | sed -e "s/SIG_KEY/$POOL_KES_SK_${i}/g" | sed -e "s/VRF_KEY/$POOL_VRF_SK_${i}/g" |  sed -e "s/NODE_ID/$STAKE_POOL_ID_${i}/g" > secrets/secret_pool_${i}.yaml
+  ${lib.optionalString (genesis-block-hash == null) ''
   GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"STAKE_POOL_CERT_${i}\"/\"$STAKE_POOL_CERT_${i}\"/g" )
-  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"STAKE_DELEGATION_CERT_${i}\"/\"$STAKE_DELEGATION_CERT_${i}\"/g" )
+  GENESIS_JSON=$(echo "$GENESIS_JSON" | sed -e "s/\"STAKE_DELEGATION_CERT_${i}\"/\"$STAKE_DELEGATION_CERT_${i}\"/g" ) ''}
 
   '') (range 1 numberOfStakePools))
   + ''
 
   echo "$CONFIG_JSON" > config.yaml
   echo "$CONFIG_JSON_GELF" > config-gelf.yaml
+  ${if (genesis-block-hash == null) then ''
   echo "$GENESIS_JSON" > genesis.yaml
   echo "$GENESIS_JSON" | jcli genesis encode --output block-0.bin
   BLOCK0_HASH=`jcli genesis hash --input block-0.bin`
+'' else ''
+  BLOCK0_HASH=${genesis-block-hash}
+''}
 
   process_file() {
       FROM=''${1}
