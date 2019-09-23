@@ -47,7 +47,8 @@ in {
       };
 
       genesisBlockHash = mkOption {
-        type = types.str;
+        type = types.nullOr types.str;
+        default = null;
         description = ''
           Genesis Block Hash
         '';
