@@ -2,31 +2,11 @@
 # The version can be overridden for debugging purposes by setting
 # NIX_PATH=iohk_nix=/path/to/iohk-nix
 let
-  iohkNix = import (
-  let try = builtins.tryEval <iohk_nix>;
-  in if try.success
-  then builtins.trace "using host <iohk_nix>" try.value
-  else
-    let
-      spec = builtins.fromJSON (builtins.readFile ./nix/iohk-nix-src.json);
-    in builtins.fetchTarball {
-      url = "${spec.url}/archive/${spec.rev}.tar.gz";
-      inherit (spec) sha256;
-    }) { nixpkgsJsonOverride = ./nix/nixpkgs-src.json; };
-  arionPkgs = import (let
-      spec = builtins.fromJSON (builtins.readFile ./nix/arion-src.json);
-    in builtins.fetchTarball {
-      url = "${spec.url}/archive/${spec.rev}.tar.gz";
-      inherit (spec) sha256;
-    }) {};
+  sources = import ./nix/sources.nix;
+  iohkNix = import sources.iohk-nix { nixpkgsOverride = sources.nixpkgs; };
+  arionPkgs = import sources.arion {};
 
-  oldNixpkgsSrc =
-    let
-      spec = builtins.fromJSON (builtins.readFile ./nix/nixpkgs-src-mono.json);
-    in builtins.fetchTarball {
-      url = "${spec.url}/archive/${spec.rev}.tar.gz";
-      inherit (spec) sha256;
-    };
+  oldNixpkgsSrc = sources.nixpkgs-mono;
 
   oldNixpkgs = import oldNixpkgsSrc {};
   mono = (oldNixpkgs.pkgs.callPackage (oldNixpkgsSrc + "/pkgs/development/compilers/mono/default.nix") {
