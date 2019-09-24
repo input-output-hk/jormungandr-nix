@@ -4,7 +4,8 @@ with import ./lib.nix; with lib;
 , jcli ? pkgs.jormungandr-cli
 , block0_consensus ? "genesis_praos"
 , color ? true
-, faucetAmounts ? [ 1000000000 1000000000 1000000000 ]
+, faucetAmount ? 1000000000
+, faucetAmounts ? (map (i: faucetAmount) (lib.range 1 numberOfStakePools))
 , numberOfStakePools ? if (block0_consensus == "bft") then 0 else (builtins.length faucetAmounts)
 , numberOfLeaders ? if (numberOfStakePools == 0) then 1 else numberOfStakePools
 , rootDir ? "/tmp"
