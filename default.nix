@@ -6,7 +6,7 @@ with import ./lib.nix; with lib;
 , color ? true
 , faucetAmount ? 1000000000
 , faucetAmounts ? (map (i: faucetAmount) (lib.range 1 numberOfStakePools))
-, numberOfStakePools ? if (block0_consensus == "bft") then 0 else (builtins.length faucetAmounts)
+, numberOfStakePools ? if (block0_consensus == "bft") then 0 else 3
 , numberOfLeaders ? if (numberOfStakePools == 0) then 1 else numberOfStakePools
 , rootDir ? "/tmp"
 # need to declare other make-genesis.nix parameters to be able to pass them:
