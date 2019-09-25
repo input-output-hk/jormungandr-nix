@@ -26,7 +26,7 @@ let
   };
 in
 rec {
-  inherit iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools choco;
+  inherit sources iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools choco;
   pkgs = rustPkgs.extend (self: super: {
     uuidgen = if self.stdenv.isLinux
       then super.runCommand "uuidgen" {} ''
