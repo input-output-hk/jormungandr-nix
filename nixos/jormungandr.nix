@@ -37,6 +37,14 @@ in {
         '';
       };
 
+      withValgrind = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Run with valgrind.
+        '';
+      };
+
       stateDir = mkOption {
         type = types.str;
         default = "jormungandr";
@@ -214,7 +222,7 @@ in {
         }));
         secretsArgs = concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
-        ${optionalString cfg.withBackTraces "RUST_BACKTRACE=1"} ${cfg.package}/bin/jormungandr \
+        ${optionalString cfg.withBackTraces "RUST_BACKTRACE=1"} ${optionalString cfg.withValgrind "${pkgs.valgrind}/bin/valgrind"} ${cfg.package}/bin/jormungandr \
         ${optionalString (cfg.block0 != null) "--genesis-block ${cfg.block0}"} \
         ${optionalString (cfg.genesisBlockHash != null) "--genesis-block-hash ${cfg.genesisBlockHash}"} \
         --config ${configJson}${secretsArgs}
