@@ -233,6 +233,7 @@ in {
         Restart = "always";
         WorkingDirectory = "/var/lib/" + cfg.stateDir;
         StateDirectory = cfg.stateDir;
+        LimitNOFILE = "4096";
       };
     };
   };
