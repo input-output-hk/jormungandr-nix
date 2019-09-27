@@ -1,4 +1,4 @@
-with import ./lib.nix; with lib;
+with import ../../lib.nix; with lib;
 { dockerEnv ? false
 , package ? pkgs.jormungandr
 , jcli ? pkgs.jormungandr-cli
@@ -36,6 +36,7 @@ with import ./lib.nix; with lib;
 , topics_of_interest ? if (numberOfStakePools > 0)
     then "messages=high,blocks=high"
     else "messages=low,blocks=normal"
+, ...
 }@args:
 let
 
@@ -54,9 +55,10 @@ let
       { cert = "STAKE_POOL_CERT_${toString i}"; }
       { cert = "STAKE_DELEGATION_CERT_${toString i}"; }]) (range 1 (numberOfStakePools));
   };
-  genesisJson = (pkgs.callPackage ./nix/make-genesis.nix (genesisGeneratedArgs // args));
+  sanitizedArgs = builtins.removeAttrs args ["color" "pkgs" "niv" "lib"];
+  genesisJson = (pkgs.callPackage ../make-genesis.nix (genesisGeneratedArgs // args));
 
-  baseDirName = "jormungandr-" + (builtins.hashString "md5" (builtins.toJSON (builtins.removeAttrs args ["color" "dockerEnv"])));
+  baseDirName = "jormungandr-" + (builtins.hashString "md5" (builtins.toJSON sanitizedArgs)) + "-bootstrap";
   baseDir = rootDir + "/" + baseDirName;
   archiveFileName = baseDirName + "-config.zip";
 
@@ -64,17 +66,17 @@ let
     inherit topics_of_interest rest_listen storage;
     logs_id = if (logs_id == null) then "LOGS_ID" else logs_id;
   };
-  configJson = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args);
+  configJson = pkgs.callPackage ../make-config.nix (configGeneratedArgs // args);
   # Used outside of nix so we can override whether to use gelf on command-line
-  configJsonGelf = pkgs.callPackage ./nix/make-config.nix (configGeneratedArgs // args // { logger_output = "gelf"; });
+  configJsonGelf = pkgs.callPackage ../make-config.nix (configGeneratedArgs // args // { logger_output = "gelf"; });
 
-  genesisSecretJson = pkgs.callPackage ./nix/make-genesis-secret.nix {
+  genesisSecretJson = pkgs.callPackage ../make-genesis-secret.nix {
     sigKey = "SIG_KEY";
     vrfKey = "VRF_KEY";
     nodeId = "NODE_ID";
   };
 
-  bftSecretJson = pkgs.callPackage ./nix/make-bft-secret.nix {
+  bftSecretJson = pkgs.callPackage ../make-bft-secret.nix {
     sigKey = "SIG_KEY";
   };
 
@@ -131,12 +133,12 @@ ${lib.optionalString (genesis-block-hash == null)''
     echo ""
   '';
 
-  gen-config-script-fragment-non-nixos = pkgs.callPackage ./nix/generate-config.nix (args // {
+  gen-config-script-fragment-non-nixos = pkgs.callPackage ../generate-config.nix (args // {
     inherit genesis-block-hash genesisJson configJson configJsonGelf genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
   });
 
 
-  docker-images = pkgs.callPackage ./nix/docker-images.nix {
+  docker-images = pkgs.callPackage ../docker-images.nix {
     jormungandr-bootstrap = (import ./. {
       storage = "/data/storage";
     }).jormungandr-bootstrap;

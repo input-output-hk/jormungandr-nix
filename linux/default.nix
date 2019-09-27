@@ -2,7 +2,7 @@
   makeSnap
 , jormungandr
 , jormungandr-cli
-, jormungandr-bootstrap
+, scripts
 }:
 
 makeSnap {
@@ -20,9 +20,12 @@ makeSnap {
       command = "${jormungandr-cli}/bin/jcli";
       plugs = [ "network" "network-bind" ];
     };
-    apps.bootstrap = {
-      command = "${jormungandr-bootstrap}/bin/bootstrap";
+    apps.run = {
+      command = "${scripts.runJormungandrSnappy}/bin/run";
       plugs = [ "network" "network-bind" ];
+    };
+    apps.create-stake-pool = {
+      command = "${scripts.createStakePool}/bin/create-stake-pool";
     };
   };
 }

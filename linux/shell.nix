@@ -1,10 +1,14 @@
 with import ../lib.nix;
 
+{
+  releaseType ? "edge"
+}:
+
 let
-  jormungandr-bootstrap = (pkgs.callPackage ../. {
+  scripts = (pkgs.callPackage ../. {
     rootDir = "$SNAP_USER_DATA";
-  }).jormungandr-bootstrap;
-  snapPackage = pkgs.callPackage ./. { inherit makeSnap jormungandr-bootstrap; };
+  }).scripts;
+  snapPackage = pkgs.callPackage ./. { inherit makeSnap scripts; };
   shell = pkgs.stdenv.mkDerivation {
     name = "snapcraft-shell";
     buildInputs = with pkgs; [ snapcraft squashfsTools xdelta snapReviewTools ];
@@ -21,7 +25,7 @@ let
     snap-review ${snapPackage}
 
     echo "Creating and pushing snapcraft package..."
-    snapcraft push --release=stable ${snapPackage}
+    snapcraft push --release=${releaseType} ${snapPackage}
     exit
     '';
   });
