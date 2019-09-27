@@ -17,14 +17,16 @@ let
     "/ip4/3.115.57.216/tcp/3000"
   ]
 , topicsOfInterest ? null
+, customConfig ? {}
 , ...
 }@args:
 let
+  customArgs = args // customConfig;
   niv = (import sources.niv {}).niv;
   scripts = pkgs.callPackage ./nix/scripts.nix ({
     inherit package jcli color staking sendLogs genesisHash trustedPeers
       topicsOfInterest niv;
-  } // args);
+  } // customArgs);
 in {
   inherit niv sources;
   inherit (scripts) shells;

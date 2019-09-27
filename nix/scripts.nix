@@ -194,14 +194,216 @@ in let
 
     echo "Stake pool secrets created and stored in ${baseDir}/secret.yaml"
   '';
-  registerStakePool = pkgs.writeShellScriptBin "register-stake-pool" ''
+  delegateStake = pkgs.writeShellScriptBin "delegate-stake" ''
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils ])}
+    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    REST_URL=${httpHost}
+
+    while getopts 's:p:r:h' c
+    do
+      case $c in
+        s) SOURCE=$OPTARG ;;
+        p) POOL=$OPTARG ;;
+        r) REST_URL=$OPTARG ;;
+        h)
+           echo "usage: $0 -s -d -a [-h]"
+           echo ""
+           echo "  -s Path to private key of wallet"
+           echo "  -p Stake Pool ID to delegate to"
+           echo "  -r REST endpoint to connect to (defaults to ${httpHost})"
+           exit 0
+           ;;
+      esac
+    done
+    if [ -z "$SOURCE" ]
+    then
+      echo "-s is a required parameter"
+      exit 1
+    fi
+    if [ -z "$POOL" ]
+    then
+      echo "-p is a required parameter"
+      exit 1
+    fi
     mkdir -p ${baseDir}
-    cd ${baseDir}
+    SOURCE_PK=$(cat $SOURCE | jcli key to-public)
+    jcli certificate new stake-delegation \
+        ''${POOL} \
+        $SOURCE_PK > ${baseDir}/stake_delegation.cert
+    cat ${baseDir}/stake_delegation.cert | jcli certificate sign ''${SOURCE} > ${baseDir}/stake_delegation.signcert
+
+    echo "Your delegation certificate is at ${baseDir}/stake_delegation.signcert"
+    echo "You need to create a transaction to send the certificate to the blockchain"
 
   '';
+  sendFunds = pkgs.writeShellScriptBin "send-funds" ''
+    set -euo pipefail
+
+    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    REST_URL=${httpHost}
+    while getopts 's:d:a:r:h' c
+    do
+      case $c in
+        s) SOURCE=$OPTARG ;;
+        d) DEST=$OPTARG ;;
+        a) AMOUNT=$OPTARG ;;
+        r) REST_URL=$OPTARG ;;
+        h)
+           echo "usage: $0 -s -d -a [-h]"
+           echo ""
+           echo "  -s Wallet to send funds from"
+           echo "  -d Address to send funds to"
+           echo "  -a Amount to send"
+           echo "  -r REST endpoint to connect to (defaults to ${httpHost})"
+           exit 0
+           ;;
+      esac
+    done
+    if [ -z "$SOURCE" ]
+    then
+      echo "-s is a required parameter"
+      exit 1
+    fi
+    if [ -z "$DEST" ]
+    then
+      echo "-d is a required parameter"
+      exit 1
+    fi
+    if [ -z "$AMOUNT" ]
+    then
+      echo "-a is a required parameter"
+      exit 1
+    fi
+
+    settings="$(curl -s ''${REST_URL}/v0/settings)"
+    FEE_CONSTANT=$(echo $settings | jq -r .fees.constant)
+    FEE_COEFFICIENT=$(echo $settings | jq -r .fees.coefficient)
+    FEE_CERTIFICATE=$(echo $settings | jq -r .fees.certificate)
+    BLOCK0_HASH=$(echo $settings | jq -r .block0Hash)
+    AMOUNT_WITH_FEES=$((''${AMOUNT} + ''${FEE_CONSTANT} + 2 * ''${FEE_COEFFICIENT}))
+    TMPDIR=$(mktemp -d)
+    STAGING_FILE="''${TMPDIR}/staging.''$$.transaction"
+    SOURCE_PK=$(echo ''${SOURCE} | jcli key to-public)
+    SOURCE_ADDR=$(jcli address account --testing ''${SOURCE_PK})
+    SOURCE_COUNTER=$(jcli rest v0 account get "''${SOURCE_ADDR}" -h "''${REST_URL}" | grep '^counter:' | sed -e 's/counter: //' )
+
+    jcli transaction new --staging ''${STAGING_FILE}
+    jcli transaction add-account "''${SOURCE_ADDR}" "''${AMOUNT_WITH_FEES}" --staging "''${STAGING_FILE}"
+    jcli transaction add-output "''${DEST}" "''${AMOUNT}" --staging "''${STAGING_FILE}"
+    jcli transaction finalize --staging ''${STAGING_FILE}
+    TRANSACTION_ID=$(jcli transaction id --staging ''${STAGING_FILE})
+    WITNESS_SECRET_FILE="''${TMPDIR}/witness.secret.''$$"
+    WITNESS_OUTPUT_FILE="''${TMPDIR}/witness.out.''$$"
+
+    printf "''${SOURCE}" > ''${WITNESS_SECRET_FILE}
+
+    echo $BLOCK0_HASH
+    jcli transaction make-witness ''${TRANSACTION_ID} \
+        --genesis-block-hash ''${BLOCK0_HASH} \
+        --type "account" --account-spending-counter "''${SOURCE_COUNTER}" \
+        ''${WITNESS_OUTPUT_FILE} ''${WITNESS_SECRET_FILE}
+    jcli transaction add-witness ''${WITNESS_OUTPUT_FILE} --staging "''${STAGING_FILE}"
+
+    rm ''${WITNESS_SECRET_FILE} ''${WITNESS_OUTPUT_FILE}
+
+    # Finalize the transaction and send it
+    jcli transaction seal --staging "''${STAGING_FILE}"
+    jcli transaction to-message --staging "''${STAGING_FILE}" | jcli rest v0 message post -h "''${REST_URL}"
+
+    rm ''${STAGING_FILE}
+  '';
+  sendCertificate = pkgs.writeShellScriptBin "send-certificate" ''
+    set -euo pipefail
+
+    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    REST_URL=${httpHost}
+    while getopts 's:c:r:h' c
+    do
+      case $c in
+        s) SOURCE=$OPTARG ;;
+        c) CERT=$OPTARG ;;
+        r) REST_URL=$OPTARG ;;
+        h)
+           echo "usage: $0 -s -c -r [-h]"
+           echo ""
+           echo "  -s Wallet to send funds from"
+           echo "  -c Signed certificate to send"
+           echo "  -r REST endpoint to connect to (defaults to ${httpHost})"
+           exit 0
+           ;;
+      esac
+    done
+    if [ -z "$SOURCE" ]
+    then
+      echo "-s is a required parameter"
+      exit 1
+    fi
+    if [ -z "$CERT" ]
+    then
+      echo "-c is a required parameter"
+      exit 1
+    fi
+
+    settings="$(curl -s ''${REST_URL}/v0/settings)"
+    FEE_CONSTANT=$(echo $settings | jq -r .fees.constant)
+    FEE_COEFFICIENT=$(echo $settings | jq -r .fees.coefficient)
+    FEE_CERTIFICATE=$(echo $settings | jq -r .fees.certificate)
+    BLOCK0_HASH=$(echo $settings | jq -r .block0Hash)
+    AMOUNT_WITH_FEES=$((''${FEE_CONSTANT} + ''${FEE_COEFFICIENT} + ''${FEE_CERTIFICATE}))
+    TMPDIR=$(mktemp -d)
+    STAGING_FILE="''${TMPDIR}/staging.''$$.transaction"
+    SOURCE_PK=$(echo ''${SOURCE} | jcli key to-public)
+    SOURCE_ADDR=$(jcli address account --testing ''${SOURCE_PK})
+    SOURCE_COUNTER=$(jcli rest v0 account get "''${SOURCE_ADDR}" -h "''${REST_URL}" | grep '^counter:' | sed -e 's/counter: //' )
+
+    jcli transaction new --staging ''${STAGING_FILE}
+    jcli transaction add-account "''${SOURCE_ADDR}" "''${AMOUNT_WITH_FEES}" --staging "''${STAGING_FILE}"
+    jcli transaction add-certificate --staging ''${STAGING_FILE} ''$(cat ''${CERT})
+    jcli transaction finalize --staging ''${STAGING_FILE}
+    TRANSACTION_ID=$(jcli transaction id --staging ''${STAGING_FILE})
+    WITNESS_SECRET_FILE="''${TMPDIR}/witness.secret.''$$"
+    WITNESS_OUTPUT_FILE="''${TMPDIR}/witness.out.''$$"
+
+    printf "''${SOURCE}" > ''${WITNESS_SECRET_FILE}
+
+    echo $BLOCK0_HASH
+    jcli transaction make-witness ''${TRANSACTION_ID} \
+        --genesis-block-hash ''${BLOCK0_HASH} \
+        --type "account" --account-spending-counter "''${SOURCE_COUNTER}" \
+        ''${WITNESS_OUTPUT_FILE} ''${WITNESS_SECRET_FILE}
+    jcli transaction add-witness ''${WITNESS_OUTPUT_FILE} --staging "''${STAGING_FILE}"
+
+    rm ''${WITNESS_SECRET_FILE} ''${WITNESS_OUTPUT_FILE}
+
+    # Finalize the transaction and send it
+    jcli transaction seal --staging "''${STAGING_FILE}"
+    jcli transaction to-message --staging "''${STAGING_FILE}" | jcli rest v0 message post -h "''${REST_URL}"
+
+    rm ''${STAGING_FILE}
+  '';
+  checkTxStatus = pkgs.writeShellScriptBin "check-tx-status" ''
+    set -euo pipefail
+
+    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    REST_URL=${httpHost}
+
+    while getopts 't:r:h' c
+    do
+      case $c in
+        t) TXID=$OPTARG ;;
+        r) REST_URL=$OPTARG ;;
+        h)
+           echo "usage: $0 -s -d -a [-h]"
+           echo ""
+           echo "  -t Transaction ID"
+           echo "  -r REST endpoint to connect to (defaults to ${httpHost})"
+           exit 0
+           ;;
+      esac
+    done
+    jcli rest v0 message logs -h "''${REST_URL}" --output-format json | jq '.[] | select (.fragment_id == "'$TXID'")'
+    '';
   shells = let
     bootstrap = pkgs.callPackage ./shells/bootstrap.nix args;
     base = pkgs.stdenv.mkDerivation {
@@ -210,7 +412,11 @@ in let
         package
         jcli
         createStakePool
-        registerStakePool
+        sendFunds
+        sendCertificate
+        delegateStake
+        checkTxStatus
+        runJormungandr
       ];
       shellHook = ''
         echo "Jormungandr Testnet" '' + (if color then ''\
@@ -244,5 +450,5 @@ in let
     });
   in { inherit testnet devops bootstrap; };
 in {
-  inherit shells runJormungandr runJormungandrSnappy createStakePool;
+  inherit shells runJormungandr runJormungandrSnappy createStakePool sendFunds sendCertificate delegateStake;
 }
