@@ -1,3 +1,4 @@
 [
- ./jormungandr.nix
+  ./jormungandr.nix
+  ./monitor.nix
 ]
