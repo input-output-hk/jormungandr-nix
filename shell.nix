@@ -1,5 +1,8 @@
-{ ... }@args:
+{ customConfig ? {}
+}:
 let
-  default = import ./. args;
+  default = import ./. { inherit customConfig; };
 
-in default.shells.testnet // default.shells
+in default.shells.testnet // default.shells // {
+  inherit (default) scripts;
+}
