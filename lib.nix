@@ -14,7 +14,7 @@ let
   });
   rustPkgs = iohkNix.rust-packages.pkgs;
   makeSnap = rustPkgs.callPackage ./nix/make-snap.nix {};
-  snapcraft = iohkNix.pkgs.callPackage ./nix/snapcraft.nix {};
+  snapcraft = rustPkgs.callPackage ./nix/snapcraft.nix {};
   choco = iohkNix.pkgs.callPackage ./nix/choco.nix { inherit mono; };
   squashfsTools = rustPkgs.squashfsTools.overrideAttrs (old: {
     patches = old.patches ++ [
