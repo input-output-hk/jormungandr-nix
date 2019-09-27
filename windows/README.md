@@ -6,18 +6,12 @@ Both unsigned and signed chocolatey package builds are addressed below.
 
 - Ensure that in file `windows/default.nix`:
 
-	-  The default version argument in the attribute header reflects the most current jormungandr release version [available](https://github.com/input-output-hk/jormungandr/releases) .
+	-  The default version argument in the attribute header reflects the most current jormungandr release version [available](https://github.com/input-output-hk/jormungandr/releases).
 
 	- The corresponding `sha256` for the latest Jormungandr version exists and is correct.
 
 - If necessary, update the `windows/tools/jormungandr-nuspec.nix` file with:
 	- Any relevant changes to project parameters, such as package owner(s), project urls, description, etc.
-
-- If necessary, update the `windows/tools/bootstrap-jormungandr.ps1` bootstrap script after checking:
-
-	- If there are any breaking changes in the latest jormungandr [release](https://github.com/input-output-hk/jormungandr/releases) which will require PowerShell script modification to remain functional.
-
-	- If there are any [upstream](https://raw.githubusercontent.com/input-output-hk/jormungandr/master/scripts/bootstrap.ps1) bootstrap script changes or improvements which should be included.
 
 - In general, updating the `windows/tools/chocolateyinstall.ps1` and `windows/tools/chocolateybeforemodify.ps1` files will not be necessary.
 
@@ -177,16 +171,6 @@ choco.exe upgrade jormungandr -f -s .
 
 # Uninstall
 choco.exe uninstall jormungandr
-
-# To test the jormungandr bootstrap script and uninstall during jormungandr active execution;
-# Re-install jormungandr:
-choco.exe install jormungandr -s .
-
-# Start the bootstrap jormungandr script, answering 'y' for 'yes' to any prompts:
-bootstrap-jormungandr.bat
-
-# In another administrative PowerShell window, uninstall jormungandr while bootstrap-jormungandr script is running:
-choco.exe uninstall jormungandr
 ```
 
 ## Pushing a Chocolatey Package Upstream
@@ -222,29 +206,3 @@ choco.exe install NugetPackageExplorer
 - While uninstalling or upgrading jormungandr, errors will be observed in the chocolatey output if any command prompts, PowerShells, or Explorer windows are open to various chocolatey installation directories.  This is due to file/folder locking.  The chocolately uninstall or upgrade will still be successful despite error output being observed.
 
 - A new version of a chocolatey package cannot be pushed upstream to chocolatey if another version of the same package is still under automated or manual review.
-
-- The `bootstrap-jormungandr.bat` script may sometimes fail to start if it has been previously run and then stopped, even when specifying `yes` to purging former configuration, database and secrets.  The error output may look like the following:
-
-```sh
-Found an existing CONFIG folder (C:\Users\$USERNAME\AppData\Local\jormungandr\config) Remove it? (Default is Yes)
- ( Y / n ) : y
-Yes, Remove former configuration
-Found an existing DATA folder (C:\Users\$USERNAME\AppData\Local\jormungandr\storage) Remove it? (Default is Yes)
- ( Y / n ) : y
-Yes, remove former database
-Found an existing SECRET folder (C:\Users\$USERNAME\AppData\Local\jormungandr\secret) Remove it? (Default is Yes)
- ( y / n ) : y
-Yes, Remove former secrets
-Do you want to start it now?  ( y / N ) : y
-$DATE INFO Starting jormungandr $VERSION, task: init
-$DATE INFO storing blockchain in '"C:/Users/$USERNAME/AppData/Local/jormungandr/storage/blocks.sqlite"', task: init
-$DATE INFO restoring state at tip $BLOCKHASH, task: bootstrap
-Error while loading the legacy blockchain state
-Error in the blockchain storage: block not found
-```
-
-- To remedy this, the storage folder can be manually purged using the path specified in the error output shown.  Example:
-
-```sh
-rm c:\Users\$USERNAME\AppData\Local\jormungandr\storage\
-```
