@@ -193,7 +193,7 @@ in let
     NODEID="$(cat stake_pool.id)"
     VRFKEY="$(cat stake_pool_vrf.prv)"
     KESKEY="$(cat stake_pool_kes.prv)"
-    jq -n ".genesis.node_id = \"$NODEID\" | .genesis.vrf_key = \"$VRFKEY\" | .genesis.sig_key = \"$KESKEY\""
+    jq -n ".genesis.node_id = \"$NODEID\" | .genesis.vrf_key = \"$VRFKEY\" | .genesis.sig_key = \"$KESKEY\"" > secret.yaml
 
     echo "Stake pool secrets created and stored in ${baseDir}/secret.yaml"
   '';
@@ -445,7 +445,7 @@ in let
     };
     testnet = base.overrideAttrs (oldAttrs: {
       shellHook = oldAttrs.shellHook + ''
-        echo "To start jormungandr run: \"run-jormungandr\" which expands to:"
+        echo "To start jormungandr run: \"run-jormungandr\"."
         echo
         echo "To connect using CLI REST:"
         echo "  jcli rest v0 <CMD> --host \"${httpHost}\""
