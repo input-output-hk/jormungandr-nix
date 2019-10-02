@@ -2,7 +2,7 @@
 , jcli
 , genesisHash
 , color
-, rootDir ? "/tmp"
+, rootDir ? "./state-jormungandr"
 , storage ? "./storage"
 , restListen ? "127.0.0.1:3001"
 , staking
@@ -122,9 +122,10 @@ in let
         s) STAKING=1 ;;
         p) PORT=$OPTARG ;;
         *)
-           echo "usage: $0 [-l]"
+           echo "usage: $0 [-l] [-s]"
            echo ""
            echo "  -l Send logs to IOHK logs server for diagnostic purposes"
+           echo "  -s Enable staking with a secret.yaml (Put file in ${baseDir} or run jormungandr.create-stake-pool)"
            exit 0
            ;;
       esac
@@ -170,32 +171,73 @@ in let
     set -euo pipefail
 
     export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils ])}
+    STAKEPOOL_NAME="stake_pool"
+    FORCE=0
+    while getopts 'fn:h' c
+    do
+      case "$c" in
+        f) FORCE=1 ;;
+        n) STAKEPOOL_NAME="$OPTARG";;
+        *)
+           echo "usage: $0 [-f] [-n <STAKEPOOL_NAME>"
+           echo ""
+           echo "  -f HERE BE DRAGONS!!! FORCE OVERWRITE EXISTING STAKE POOL. FUNDS MAY BE LOST!!!"
+           echo "  -n Name of stake pool to prefix (defaults to stake_pool)"
+           exit 0
+           ;;
+      esac
+    done
+
+    if [[ "$FORCE" -eq 0 && -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
+    then
+      echo "''${STAKEPOOL_NAME}-secret.yaml exists!"
+      echo "Please either specify [-f] flag to overwrite existing stake pool -f [-n <POOLNAME>]."
+      exit 1
+    elif [[ "$FORCE" -eq 0 && -f "${baseDir}/secret.yaml" ]]
+    then
+      echo "secret.yaml exists, but you've requested a different pool name."
+      echo "Your secret.yaml will be updated to point to newly created pool"
+      rm -f "${baseDir}/secret.yaml"
+    elif [[ "$FORCE" -eq 0 && -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
+    then
+      echo "WARNING! You've specified [-f] flag. Your secrets for previous pool WILL BE REMOVED!"
+      rm -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml"
+      rm -f "${baseDir}/secret.yaml"
+    elif [[ "$FORCE" -eq 1 ]]
+    then
+      rm -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml"
+      rm -f "${baseDir}/secret.yaml"
+    fi
+
     mkdir -p ${baseDir}
     cd ${baseDir}
-    jcli key generate --type=Ed25519 > stake_pool_owner_wallet.prv
-    jcli key to-public < stake_pool_owner_wallet.prv > stake_pool_owner_wallet.pub
-    jcli address account "$(cat stake_pool_owner_wallet.pub)" --testing > stake_pool_owner_wallet.address
+    jcli key generate --type=Ed25519 > ''${STAKEPOOL_NAME}_owner_wallet.prv
+    jcli key to-public < ''${STAKEPOOL_NAME}_owner_wallet.prv > ''${STAKEPOOL_NAME}_owner_wallet.pub
+    jcli address account "$(cat ''${STAKEPOOL_NAME}_owner_wallet.pub)" --testing > ''${STAKEPOOL_NAME}_owner_wallet.address
 
-    jcli key generate --type=SumEd25519_12 > stake_pool_kes.prv
-    jcli key to-public < stake_pool_kes.prv > stake_pool_kes.pub
-    jcli key generate --type=Curve25519_2HashDH > stake_pool_vrf.prv
-    jcli key to-public < stake_pool_vrf.prv > stake_pool_vrf.pub
+    jcli key generate --type=SumEd25519_12 > ''${STAKEPOOL_NAME}_kes.prv
+    jcli key to-public < ''${STAKEPOOL_NAME}_kes.prv > ''${STAKEPOOL_NAME}_kes.pub
+    jcli key generate --type=Curve25519_2HashDH > ''${STAKEPOOL_NAME}_vrf.prv
+    jcli key to-public < ''${STAKEPOOL_NAME}_vrf.prv > ''${STAKEPOOL_NAME}_vrf.pub
 
     jcli certificate new stake-pool-registration \
-    --kes-key "$(cat stake_pool_kes.pub)" \
-    --vrf-key "$(cat stake_pool_vrf.pub)" \
-    --owner "$(cat stake_pool_owner_wallet.pub)" \
+    --kes-key "$(cat ''${STAKEPOOL_NAME}_kes.pub)" \
+    --vrf-key "$(cat ''${STAKEPOOL_NAME}_vrf.pub)" \
+    --owner "$(cat ''${STAKEPOOL_NAME}_owner_wallet.pub)" \
     --serial 1010101010 \
     --management-threshold 1 \
-    --start-validity 0 > stake_pool.cert
-    jcli certificate sign stake_pool_owner_wallet.prv < stake_pool.cert > stake_pool.signcert
-    jcli certificate get-stake-pool-id < stake_pool.signcert > stake_pool.id
-    NODEID="$(cat stake_pool.id)"
-    VRFKEY="$(cat stake_pool_vrf.prv)"
-    KESKEY="$(cat stake_pool_kes.prv)"
-    jq -n ".genesis.node_id = \"$NODEID\" | .genesis.vrf_key = \"$VRFKEY\" | .genesis.sig_key = \"$KESKEY\"" > secret.yaml
+    --start-validity 0 > ''${STAKEPOOL_NAME}.cert
+    jcli certificate sign ''${STAKEPOOL_NAME}_owner_wallet.prv < ''${STAKEPOOL_NAME}.cert > ''${STAKEPOOL_NAME}.signcert
+    jcli certificate get-stake-pool-id < ''${STAKEPOOL_NAME}.signcert > ''${STAKEPOOL_NAME}.id
+    NODEID="$(cat ''${STAKEPOOL_NAME}.id)"
+    VRFKEY="$(cat ''${STAKEPOOL_NAME}_vrf.prv)"
+    KESKEY="$(cat ''${STAKEPOOL_NAME}_kes.prv)"
+    jq -n ".genesis.node_id = \"$NODEID\" | .genesis.vrf_key = \"$VRFKEY\" | .genesis.sig_key = \"$KESKEY\"" > ''${STAKEPOOL_NAME}-secret.yaml
+    ln -s ''${STAKEPOOL_NAME}-secret.yaml secret.yaml
+
 
     echo "Stake pool secrets created and stored in ${baseDir}/secret.yaml"
+    echo "The certificate ${baseDir}/stake_pool.signcert needs to be submitted to network using send-certificate"
   '';
   delegateStake = pkgs.writeShellScriptBin "delegate-stake" ''
     set -euo pipefail
@@ -447,10 +489,13 @@ in let
       shellHook = oldAttrs.shellHook + ''
         echo "To start jormungandr run: \"run-jormungandr\"."
         echo
+        export JORMUNGANDR_RESTAPI_URL=${httpHost}
+        echo "Using REST API host of ''${JORMUNGANDR_RESTAPI_URL}"
+        echo
         echo "To connect using CLI REST:"
-        echo "  jcli rest v0 <CMD> --host \"${httpHost}\""
+        echo "  jcli rest v0 <CMD> "
         echo "For example:"
-        echo "  jcli rest v0 node stats get -h \"${httpHost}\""
+        echo "  jcli rest v0 node stats get"
         echo
         echo "Available Testnet helper scripts:"
         echo " - send-funds"

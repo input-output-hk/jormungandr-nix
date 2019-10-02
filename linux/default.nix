@@ -30,11 +30,11 @@ makeSnap {
     apps.delegate-stake = {
       command = "${scripts.delegateStake}/bin/delegate-stake";
     };
-    apps.sendFunds = {
+    apps.send-funds = {
       command = "${scripts.sendFunds}/bin/send-funds";
       plugs = [ "network" "network-bind" ];
     };
-    apps.sendCertificate = {
+    apps.send-certificate = {
       command = "${scripts.sendCertificate}/bin/send-certificate";
       plugs = [ "network" "network-bind" ];
     };
