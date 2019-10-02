@@ -2,7 +2,7 @@
 , jcli
 , genesisHash
 , color
-, rootDir ? "./state-jormungandr"
+, rootDir ? "./state-jormungandr-bootstrap"
 , storage ? "./storage"
 , restListen ? "127.0.0.1:3001"
 , staking
@@ -45,8 +45,6 @@ in let
     backend = "monitoring.stakepool.cardano-testnet.iohkdev.io:12201";
     id = null;
   } // logConfig';
-  baseDirName = "jormungandr-" + (builtins.hashString "md5" (builtins.toJSON sanitizedArgs));
-  baseDir = rootDir + "/" + baseDirName;
   configAttrs = {
     inherit storage;
     log = {
@@ -92,9 +90,9 @@ in let
 
     export PATH=${lib.makeBinPath (with pkgs; [ package jcli coreutils gnused uuidgen jq curl ])}
 
-    echo "basedir: ${baseDir}"
-    mkdir -p ${baseDir}
-    cd ${baseDir}
+    echo "basedir: ${rootDir}"
+    mkdir -p ${rootDir}
+    cd ${rootDir}
 
     echo "Starting Jormungandr..."
     jormungandr --genesis-block-hash ${genesisHash} --config ${configFile} ${lib.optionalString staking "--secret ${stakingFile}" }
@@ -125,15 +123,15 @@ in let
            echo "usage: $0 [-l] [-s]"
            echo ""
            echo "  -l Send logs to IOHK logs server for diagnostic purposes"
-           echo "  -s Enable staking with a secret.yaml (Put file in ${baseDir} or run jormungandr.create-stake-pool)"
+           echo "  -s Enable staking with a secret.yaml (Put file in ${rootDir} or run jormungandr.create-stake-pool)"
            exit 0
            ;;
       esac
     done
 
-    echo "basedir: ${baseDir}"
-    mkdir -p ${baseDir}
-    cd ${baseDir}
+    echo "basedir: ${rootDir}"
+    mkdir -p ${rootDir}
+    cd ${rootDir}
     cp ${configFile} ./config.yaml
     cp ${configFileGelf} ./config-gelf.yaml
     chmod 0644 ./config.yaml ./config-gelf.yaml
@@ -159,7 +157,7 @@ in let
       then
         STAKING_ARGS="--secret ./secret.yaml"
       else
-        echo "You must add a secret.yaml file to ${baseDir}/secret.yaml to stake!"
+        echo "You must add a secret.yaml file to ${rootDir}/secret.yaml to stake!"
         exit 1
         fi
     fi
@@ -188,29 +186,29 @@ in let
       esac
     done
 
-    if [[ "$FORCE" -eq 0 && -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
+    if [[ "$FORCE" -eq 0 && -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
     then
       echo "''${STAKEPOOL_NAME}-secret.yaml exists!"
       echo "Please either specify [-f] flag to overwrite existing stake pool -f [-n <POOLNAME>]."
       exit 1
-    elif [[ "$FORCE" -eq 0 && -f "${baseDir}/secret.yaml" ]]
+    elif [[ "$FORCE" -eq 0 && -f "${rootDir}/secret.yaml" ]]
     then
       echo "secret.yaml exists, but you've requested a different pool name."
       echo "Your secret.yaml will be updated to point to newly created pool"
-      rm -f "${baseDir}/secret.yaml"
-    elif [[ "$FORCE" -eq 0 && -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
+      rm -f "${rootDir}/secret.yaml"
+    elif [[ "$FORCE" -eq 0 && -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
     then
       echo "WARNING! You've specified [-f] flag. Your secrets for previous pool WILL BE REMOVED!"
-      rm -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml"
-      rm -f "${baseDir}/secret.yaml"
+      rm -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml"
+      rm -f "${rootDir}/secret.yaml"
     elif [[ "$FORCE" -eq 1 ]]
     then
-      rm -f "${baseDir}/''${STAKEPOOL_NAME}-secret.yaml"
-      rm -f "${baseDir}/secret.yaml"
+      rm -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml"
+      rm -f "${rootDir}/secret.yaml"
     fi
 
-    mkdir -p ${baseDir}
-    cd ${baseDir}
+    mkdir -p ${rootDir}
+    cd ${rootDir}
     jcli key generate --type=Ed25519 > ''${STAKEPOOL_NAME}_owner_wallet.prv
     jcli key to-public < ''${STAKEPOOL_NAME}_owner_wallet.prv > ''${STAKEPOOL_NAME}_owner_wallet.pub
     jcli address account "$(cat ''${STAKEPOOL_NAME}_owner_wallet.pub)" --testing > ''${STAKEPOOL_NAME}_owner_wallet.address
@@ -236,8 +234,8 @@ in let
     ln -s ''${STAKEPOOL_NAME}-secret.yaml secret.yaml
 
 
-    echo "Stake pool secrets created and stored in ${baseDir}/secret.yaml"
-    echo "The certificate ${baseDir}/stake_pool.signcert needs to be submitted to network using send-certificate"
+    echo "Stake pool secrets created and stored in ${rootDir}/secret.yaml"
+    echo "The certificate ${rootDir}/stake_pool.signcert needs to be submitted to network using send-certificate"
   '';
   delegateStake = pkgs.writeShellScriptBin "delegate-stake" ''
     set -euo pipefail
@@ -270,14 +268,14 @@ in let
       echo "-p is a required parameter"
       exit 1
     fi
-    mkdir -p ${baseDir}
+    mkdir -p ${rootDir}
     SOURCE_PK=$(jcli key to-public < "$SOURCE")
     jcli certificate new stake-delegation \
       "$POOL" \
-      "$SOURCE_PK" > ${baseDir}/stake_delegation.cert
-    jcli certificate sign "$SOURCE" < ${baseDir}/stake_delegation.cert > ${baseDir}/stake_delegation.signcert
+      "$SOURCE_PK" > ${rootDir}/stake_delegation.cert
+    jcli certificate sign "$SOURCE" < ${rootDir}/stake_delegation.cert > ${rootDir}/stake_delegation.signcert
 
-    echo "Your delegation certificate is at ${baseDir}/stake_delegation.signcert."
+    echo "Your delegation certificate is at ${rootDir}/stake_delegation.signcert."
     echo "You need to create a transaction to send the certificate to the blockchain."
 
   '';

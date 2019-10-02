@@ -58,9 +58,7 @@ let
   sanitizedArgs = builtins.removeAttrs args ["color" "pkgs" "niv" "lib"];
   genesisJson = (pkgs.callPackage ../make-genesis.nix (genesisGeneratedArgs // args));
 
-  baseDirName = "jormungandr-" + (builtins.hashString "md5" (builtins.toJSON sanitizedArgs)) + "-bootstrap";
-  baseDir = rootDir + "/" + baseDirName;
-  archiveFileName = baseDirName + "-config.zip";
+  archiveFileName = "config.zip";
 
   configGeneratedArgs = {
     inherit topics_of_interest rest_listen storage;
@@ -134,7 +132,7 @@ ${lib.optionalString (genesis-block-hash == null)''
   '';
 
   gen-config-script-fragment-non-nixos = pkgs.callPackage ../generate-config.nix (args // {
-    inherit genesis-block-hash genesisJson configJson configJsonGelf genesisSecretJson bftSecretJson baseDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
+    inherit genesis-block-hash genesisJson configJson configJsonGelf genesisSecretJson bftSecretJson rootDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
   });
 
 
@@ -202,8 +200,8 @@ ${lib.optionalString (genesis-block-hash == null)''
         esac
       done
 
-      mkdir -p ${baseDir}
-      cd ${baseDir}
+      mkdir -p ${rootDir}
+      cd ${rootDir}
 
       rm -f config.yaml
       ${gen-config-script-fragment-non-nixos}
@@ -221,7 +219,7 @@ ${lib.optionalString (genesis-block-hash == null)''
       if [ "$AUTOSTART" == "1" ]; then
         echo "Running"
         echo " $STARTCMD"
-        echo "State is stored in ${baseDir}"
+        echo "State is stored in ${rootDir}"
         echo ""
         $STARTCMD
       else
@@ -253,8 +251,8 @@ ${lib.optionalString (genesis-block-hash == null)''
       | ${pkgs.figlet}/bin/figlet -f banner -c \
       | ${pkgs.lolcat}/bin/lolcat'' else "") + ''
 
-      mkdir -p "${baseDir}"
-      cd "${baseDir}"
+      mkdir -p "${rootDir}"
+      cd "${rootDir}"
 
       '' + (if dockerEnv then ''
       mkdir -p docker
