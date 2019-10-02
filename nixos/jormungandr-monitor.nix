@@ -5,7 +5,7 @@ let
   cfgJormungandr = config.services.jormungandr;
 
   genesisAddresses = let
-    inherit (lib) elemAt filter readFile fromJSON;
+    inherit (builtins) fromJSON elemAt filter readFile;
     genesis = fromJSON (readFile cfg.genesisYaml);
     initial = map (i: if i ? fund then i.fund else null) genesis.initial;
     withFunds = filter (f: f != null) initial;
