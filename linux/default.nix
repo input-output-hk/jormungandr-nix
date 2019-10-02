@@ -27,5 +27,16 @@ makeSnap {
     apps.create-stake-pool = {
       command = "${scripts.createStakePool}/bin/create-stake-pool";
     };
+    apps.delegate-stake = {
+      command = "${scripts.delegateStake}/bin/delegate-stake";
+    };
+    apps.sendFunds = {
+      command = "${scripts.sendFunds}/bin/send-funds";
+      plugs = [ "network" "network-bind" ];
+    };
+    apps.sendCertificate = {
+      command = "${scripts.sendCertificate}/bin/send-certificate";
+      plugs = [ "network" "network-bind" ];
+    };
   };
 }
