@@ -8,7 +8,7 @@ with import ../../lib.nix; with lib;
 , faucetAmounts ? (map (i: faucetAmount) (lib.range 1 numberOfStakePools))
 , numberOfStakePools ? if (block0_consensus == "bft") then 0 else 3
 , numberOfLeaders ? if (numberOfStakePools == 0) then 1 else numberOfStakePools
-, rootDir ? "/tmp"
+, rootDir ? "./state-jormungandr"
 # need to declare other make-genesis.nix parameters to be able to pass them:
 , block0_date ? null
 , isProduction ? null
