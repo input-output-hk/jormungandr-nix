@@ -1,10 +1,10 @@
 let
   sources = import ../../nix/sources.nix;
-  lib = ( import ../../lib.nix ).lib;
-  inherit (lib)
-    rustPkgs mapAttrs flip concatStringsSep attrValues range
-    listToAttrs optionalString optionals filter makeBinPath flatten
-    optionalAttrs recursiveUpdate pkgs take;
+  inherit ( import ../../lib.nix ) lib pkgs iohkNix;
+  inherit (iohkNix) rust-packages;
+  inherit (lib) recursiveUpdate range listToAttrs optionalString optionals
+                filter makeBinPath flatten mapAttrs flip concatStringsSep
+                attrValues optionalAttrs take;
   inherit (builtins) foldl';
   inherit (pkgs) stdenv;
 

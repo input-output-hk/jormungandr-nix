@@ -2,7 +2,7 @@
 
 let
   inherit (import ../../lib.nix)
-    rust-packages mkOption mkIf optionalAttrs concatMapStrings optionalString
+    rustPkgs mkOption mkIf optionalAttrs concatMapStrings optionalString
     mkEnableOption types concatStringsSep filter makeBinPath;
 
   cfg = config.services.jormungandr;
@@ -51,7 +51,7 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = rust-packages.pkgs.jormungandr;
+        default = rustPkgs.pkgs.jormungandr;
         defaultText = "jormungandr";
         description = ''
           The jormungandr package that should be used.
