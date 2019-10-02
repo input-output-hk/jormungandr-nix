@@ -15,7 +15,7 @@ writeText "jormungandr-nuspec" ''
 
     <title>jormungandr (Install)</title>
     <authors>Input Output HK Limited</authors>
-    <projectUrl>https://testnet.iohkdev.io/cardano/shelley/get-started/setting-up-the-self-node/</projectUrl>
+    <projectUrl>https://testnet.iohkdev.io/cardano/shelley/about/testnet-introduction/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <tags>jormungandr</tags>
     <summary>Jormungandr: Cardano Node running on Rust</summary>

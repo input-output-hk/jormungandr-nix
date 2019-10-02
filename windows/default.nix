@@ -9,7 +9,7 @@
 , choco
 , chocoReleaseOverride
 , fetchurl
-, version ? "0.5.2"
+, version ? "0.5.5"
 }:
 let
   url = "https://github.com/input-output-hk/jormungandr/releases/download/v${version}/jormungandr-v${version}-x86_64-pc-windows-gnu.zip";
@@ -18,6 +18,7 @@ let
     else (fetchurl {
       inherit url;
       sha256 = {
+       "0.5.5" = "0q7p69r372d153218khl3978qdhpd5dghrvccq7nmg0cpkah7d6f";
        "0.5.2" = "0k94ixf5d0vrrn248ida6ph7gc4zzp1j2sm66cj1wzn289p3bkd3";
        "0.5.0" = "1dyd1z6rcwx9z07x6hklk2lk6ivlwkcc1v4707fqjkm6gqk6bjwa";
        "0.3.999" = "0cnplldr827rf020s7qi9w215cidcgvkc6hpfqdxfxankxvffc6k";
