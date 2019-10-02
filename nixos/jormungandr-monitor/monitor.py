@@ -53,7 +53,11 @@ JORMUNGANDR_METRICS_REQUEST_TIME = Summary(
 @JORMUNGANDR_METRICS_REQUEST_TIME.time()
 def process_jormungandr_metrics():
     metrics = jcli_rest(['node', 'stats', 'get'])
-    metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
+    try:
+        metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
+    except:
+        print(f'failed to parse lastBlockTime: {metrics["lastBlockTime"]}')
+        metrics['lastBlockTime'] = False
     for metric, gauge in jormungandr_metrics.items():
         gauge.set(sanitize(metrics[metric]))
 
