@@ -29,6 +29,15 @@ in {
         '';
       };
 
+      jcliPackage = mkOption {
+        type = types.package;
+        default = (import ../lib.nix).pkgs.jormungandr-cli;
+        defaultText = "jormungandr-cli";
+        description = ''
+          The jormungandr-cli package that should be used.
+        '';
+      };
+
       withBackTraces = mkOption {
         type = types.bool;
         default = false;
@@ -181,6 +190,9 @@ in {
   };
 
   config = mkIf cfg.enable {
+    environment.systemPackages = [
+      cfg.jcliPackage
+    ];
     users.groups.jormungandr.gid = 10015;
     users.users.jormungandr = {
       description = "Jormungandr node daemon user";
