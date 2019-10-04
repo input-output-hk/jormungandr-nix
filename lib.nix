@@ -37,6 +37,12 @@ rec {
         mkdir $out/bin -pv
         ln -sv /usr/bin/uuidgen $out/bin/uuidgen
       '';
+    jormungandr = super.makeJormungandr {
+      version = "unstable";
+      rev = "835463eb39f557e36fbae4c38484429f230c8364";
+      sha256 = "0vb3gyxj4qmvxn4xx0wk8q51pgbikwjn8swvxlx0x0ygmzkbp04z";
+      cargoSha256 = "1hkbzxp6ic1655cq45zv6dcyrk9rbmvscdl8wm8fbidabz4x8vqd";
+    };
   });
   inherit (pkgs) lib;
 }

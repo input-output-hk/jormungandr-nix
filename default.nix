@@ -27,8 +27,9 @@ let
     inherit package jcli color staking sendLogs genesisHash trustedPeers
       topicsOfInterest niv;
   } // customArgs);
+  explorerFrontend = (import ./explorer-frontend).jormungandr-explorer;
 in {
-  inherit niv sources;
+  inherit niv sources explorerFrontend;
   inherit (scripts) shells;
   inherit scripts;
 }

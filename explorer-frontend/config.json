@@ -1,0 +1,7 @@
+{
+  "explorerUrl": "http://explorer.jormungandr/explorer/graphql",
+  "currency": {
+    "symbol": "ADA",
+    "decimals": 6
+  }
+}
