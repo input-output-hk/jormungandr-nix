@@ -35,6 +35,18 @@
         "url": "https://github.com/input-output-hk/iohk-nix/archive/ce9d8f42b705748b42b8e7f41d04e256de5420ea.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "js-chain-libs": {
+        "branch": "master",
+        "description": "chain-libs javascript SDK",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "js-chain-libs",
+        "rev": "1f1bbc5557ed5356a5fac89a3224d3449ef98ba3",
+        "sha256": "14v7zm2h3v4vb7f15i4mk6f5jsdd6akqv2pzqmj52hprh076p0hd",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/js-chain-libs/archive/1f1bbc5557ed5356a5fac89a3224d3449ef98ba3.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "niv": {
         "branch": "iohk",
         "description": "Easy dependency management for Nix projects",
