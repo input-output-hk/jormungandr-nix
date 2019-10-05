@@ -40,33 +40,59 @@ docker run -t -e GELF='true' jormungandr-standalone:0.3.0
 
 # A nix-shell for Jormungandr
 
-To drop into a shell with all configuraton files generated for you:
+To drop into a shell ready to connect to the testnet, clone this repo and run:
 ```
-nix-shell https://github.com/input-output-hk/jormungandr-nix/archive/master.tar.gz
+nix-shell
 ```
 
+After you've generated secrets in `state-jormungandr` using
+`create-stake-pool` run the node with `nix-shell --arg customConfig '{ staking = true; }'` to launch the node as a stake pool with your `secret.yaml`.
+
+__Important__ if you want to help IOHK diagnoctic issues you may encouter
+
+Set logger output to `gelf` with
+```
+--arg customConfig '{ sendLogs = true; }'
+```
+
+Note that any number of options can be combined in `customConfig`. For example to send logs and run as a stake pool use:
+```
+--arg customConfig '{ sendLogs = true; staking = true; }'
+```
+
+that way jormungandr logs will be sent to iohk testnet log server and will be invaluable inputs to diagnoctic issues.
+
+One other useful feature, if you run jormungandr on a separate
+host and can access the REST API from the host your running the
+nix-shell, use:
+
+```
+--arg customConfig '{restListen = "192.168.1.1:3101"'
+```
+
+to connect to the API at host 192.168.1.1 on port 3101.
+
+
 Once in the shell run `run-jormungandr` to start jormungandr.
+
+
+# Nix-shell for self node and creating new genesis files
+
+The self node generation scripts have been moved to `nix-shell -A bootstrap`.
+
+Unless you're developing a feature in isolation from the network, like a custom explorer or wallet, you have no need for these instructions and should refer above to the networked testnet nix-shell.
 
 To regenerate the config (in case of incompatible change in jormungandr after updating the commit), run `generate-config`
 
 You can tweak the blockchain configuration through nix-shell parameters, eg.:
 ```
-nix-shell --arg faucetAmounts "[ 100000 1234444 34556 ]" \
-          --arg numberOfStakePools 2 \
-          --argstr logger_output gelf \
-          --argstr storage "/tmp/jormungandr-storage" \
-          https://github.com/input-output-hk/jormungandr-nix/archive/32ea0bf1c78307f797b6b4587191109a3ec9a319.tar.gz \
-          --run run-jormungandr
+nix-shell -A bootstrap --arg customConfig '{ faucetAmounts = [ 100000 1234444 34556 ]; numberOfStakePools = 2; logger_output = gelf; }'
 ```
 
-__Important__ if you want to help IOHK diagnoctic issues you may encoutered
+This will put the new bootstrap config in state-jormungandr-bootstrap.
 
-Set logger output to `gelf` with
-```
---argstr logger_output gelf
-```
-that way jormungandr logs will be sent to iohk testnet log server and will be invaluable inputs to diagnoctic issues.
 
+TODO: update below params to be up to date.
 
 ## Available parameters
 
