@@ -11,7 +11,7 @@ writeText "jormungandr-nuspec" ''
     <id>jormungandr</id>
     <version>${version}</version>
     <packageSourceUrl>https://github.com/input-output-hk/jormungandr-nix/tree/master/windows</packageSourceUrl>
-    <owners>disasm,johnalotoski</owners>
+    <owners>disasm,johnalotoski,manveru</owners>
 
     <title>jormungandr (Install)</title>
     <authors>Input Output HK Limited</authors>
@@ -23,7 +23,7 @@ writeText "jormungandr-nuspec" ''
 
 Jormungandr is a node implementation with the initial aim to support the Ouroboros type of consensus protocol.  A node is a participant of a blockchain network, continuously making, sending, receiving, and validating blocks. Each node is responsible to make sure that all the rules of the protocol are followed.
 
-Once this chocolatey package is installed, jcli.exe and jormungandr.exe binaries will be available on the command line. See the documentation for usage.</description>
+Once this chocolatey package is installed, jcli.exe and jormungandr.exe binaries will be available on the command line. See the documentation for usage.  A jtools script will also be available which simplifies activities such as wallet creation, fund transfer, fund delegation, stake pool creation and more.</description>
     <docsUrl>https://input-output-hk.github.io/jormungandr/</docsUrl>
     <bugTrackerUrl>https://github.com/input-output-hk/jormungandr/issues</bugTrackerUrl>
     <projectSourceUrl>https://github.com/input-output-hk/jormungandr</projectSourceUrl>
