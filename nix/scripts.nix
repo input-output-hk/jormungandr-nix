@@ -2,7 +2,7 @@
 , jcli
 , genesisHash
 , color
-, rootDir ? "./state-jormungandr-bootstrap"
+, rootDir ? "./state-jormungandr"
 , storage ? "./storage"
 , restListen ? "127.0.0.1:3001"
 , staking
