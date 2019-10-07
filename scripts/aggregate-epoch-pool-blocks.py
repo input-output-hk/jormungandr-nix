@@ -23,8 +23,8 @@ def get_block(block_id):
 
 def parse_block(block):
     return {
-      "epoch": block[16:24],
-      "slot": block[24:32],
+      "epoch": int(block[16:24], 16),
+      "slot": int(block[24:32], 16),
       "parent": block[104:168],
       "pool": block[168:232],
     }
