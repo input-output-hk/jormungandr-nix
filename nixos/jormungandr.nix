@@ -153,6 +153,14 @@ in {
           Address to listen on for rest endpoint.
         '';
       };
+      rest.cors.allowedOrigins = mkOption {
+        type = types.listOf types.str;
+        default = null;
+        example = [ "yourhostname.com" ];
+        description = ''
+          CORS allowed origins
+        '';
+      };
 
       logger.level = mkOption {
         type = types.enum [ "off" "critical" "error" "warning" "info" "debug" "trace"];
@@ -227,6 +235,8 @@ in {
           };
           rest = {
             listen = cfg.rest.listenAddress;
+          } // optionalAttrs (cfg.rest.cors.allowedOrigins != []) {
+            cors.allowed_origins = cfg.rest.cors.allowedOrigins;
           };
           p2p = filterAttrs (key: value: value != null) {
             public_address = cfg.publicAddress;
