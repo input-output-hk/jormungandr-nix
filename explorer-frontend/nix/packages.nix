@@ -4,7 +4,7 @@ let
 
   src = js-chain-libs + "/examples/explorer";
 in rec {
-  jormungandr-explorer = stdenv.mkDerivation {
+  jormungandr-explorer = { configJSON ? ../config.json }: stdenv.mkDerivation {
     name = "jormungandr-explorer";
     inherit src;
 
@@ -12,7 +12,7 @@ in rec {
 
     buildPhase = ''
       ln -s ${react-scripts}/libexec/jormungandr-explorer/node_modules/
-      cp ${../config.json} src/config.json
+      cp ${configJSON} src/config.json
       yarn run relay
       yarn run build
     '';
