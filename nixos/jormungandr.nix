@@ -137,6 +137,15 @@ in {
         '';
       };
 
+      maxConnections = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        example = 500;
+        description = ''
+          Max connections allowed
+        '';
+      };
+
       rest.listenAddress = mkOption {
         type = types.nullOr types.str;
         default = "127.0.0.1:8607";
@@ -219,13 +228,13 @@ in {
           rest = {
             listen = cfg.rest.listenAddress;
           };
-          p2p = {
+          p2p = filterAttrs (key: value: value != null) {
             public_address = cfg.publicAddress;
 
             trusted_peers = cfg.trustedPeersAddresses;
             topics_of_interest = cfg.topicsOfInterest;
-          } // optionalAttrs (cfg.listenAddress != null) {
             listen_address = cfg.listenAddress;
+            max_connections = cfg.maxConnections;
           };
         } // optionalAttrs cfg.enableExplorer {
           explorer = {
