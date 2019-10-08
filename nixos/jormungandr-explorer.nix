@@ -100,7 +100,11 @@ in {
           forceSSL = cfg.enableSSL;
           enableACME = cfg.enableSSL;
 
-          locations."/".root = cfg.package;
+          locations."/" = {
+            root = cfg.package;
+            index = "index.html";
+            tryFiles = "$uri $uri/ /index.html?$args";
+          };
 
           locations."/explorer/graphql" = {
             extraConfig = ''
