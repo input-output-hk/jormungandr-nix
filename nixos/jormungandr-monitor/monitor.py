@@ -22,7 +22,7 @@ NODE_METRICS = [
     "txRecvCnt",
     "uptime",
 ]
-
+NaN = float('NaN')
 
 def metric_gauge(metric):
     return Gauge(f'jormungandr_{metric}', 'Jormungandr {metric}')
@@ -57,7 +57,7 @@ def process_jormungandr_metrics():
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
     except:
         print(f'failed to parse lastBlockTime: {metrics["lastBlockTime"]}')
-        metrics['lastBlockTime'] = False
+        metrics['lastBlockTime'] = NaN
     for metric, gauge in jormungandr_metrics.items():
         gauge.set(sanitize(metrics[metric]))
 
@@ -83,9 +83,9 @@ def sanitize(metric):
             try:
                 metric = int(metric, 16)
             except ValueError:
-                metric = False
+                metric = NaN
     elif not isinstance(metric, (float, int)):
-        metric = False
+        metric = NaN
     return metric
 
 
@@ -109,5 +109,5 @@ if __name__ == '__main__':
             print("failed to process jormungandr metrics")
             for d in to_reset:
                 for gauge in d.values():
-                    gauge.set(False)
+                    gauge.set(NaN)
         time.sleep(SLEEP_TIME)
