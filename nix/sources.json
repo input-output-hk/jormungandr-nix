@@ -41,10 +41,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "js-chain-libs",
-        "rev": "1f1bbc5557ed5356a5fac89a3224d3449ef98ba3",
-        "sha256": "14v7zm2h3v4vb7f15i4mk6f5jsdd6akqv2pzqmj52hprh076p0hd",
+        "rev": "6ea8645ba96e7395e11e0043118f9d067e41afc8",
+        "sha256": "0q5gqiqwlf0a5nwl6f321zc8z0pik7cfvm21zrcw2qgwil5xqh1h",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/js-chain-libs/archive/1f1bbc5557ed5356a5fac89a3224d3449ef98ba3.tar.gz",
+        "url": "https://github.com/input-output-hk/js-chain-libs/archive/6ea8645ba96e7395e11e0043118f9d067e41afc8.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
