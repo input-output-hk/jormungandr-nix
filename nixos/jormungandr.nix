@@ -155,7 +155,7 @@ in {
       };
       rest.cors.allowedOrigins = mkOption {
         type = types.listOf types.str;
-        default = null;
+        default = [];
         example = [ "yourhostname.com" ];
         description = ''
           CORS allowed origins

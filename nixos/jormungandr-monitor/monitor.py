@@ -20,11 +20,26 @@ NODE_METRICS = [
     "lastBlockTime",
     "lastBlockTx",
     "txRecvCnt",
-    "uptime",
+    "uptime"
 ]
+PIECE_METRICS = [
+    "lastBlockHashPiece1",
+    "lastBlockHashPiece2",
+    "lastBlockHashPiece3",
+    "lastBlockHashPiece4",
+    "lastBlockHashPiece5",
+    "lastBlockHashPiece6",
+    "lastBlockHashPiece7",
+    "lastBlockHashPiece8"
+]
+NaN = float('NaN')
 
 
 def metric_gauge(metric):
+    return Gauge(f'jormungandr_{metric}', 'Jormungandr {metric}')
+
+
+def piece_gauge(metric):
     return Gauge(f'jormungandr_{metric}', 'Jormungandr {metric}')
 
 
@@ -39,10 +54,16 @@ def counts_gauge(addr):
 
 
 jormungandr_metrics = {metric: metric_gauge(metric) for metric in NODE_METRICS}
+jormungandr_pieces = {metric: piece_gauge(metric) for metric in PIECE_METRICS}
 jormungandr_funds = {addr: funds_gauge(addr) for addr in ADDRESSES}
 jormungandr_counts = {addr: counts_gauge(addr) for addr in ADDRESSES}
 
-to_reset = [jormungandr_funds, jormungandr_counts, jormungandr_metrics]
+to_reset = [
+    jormungandr_funds,
+    jormungandr_counts,
+    jormungandr_metrics,
+    jormungandr_pieces
+]
 
 JORMUNGANDR_METRICS_REQUEST_TIME = Summary(
     'jormungandr_metrics_process_time',
@@ -52,14 +73,30 @@ JORMUNGANDR_METRICS_REQUEST_TIME = Summary(
 # Decorate function with metric.
 @JORMUNGANDR_METRICS_REQUEST_TIME.time()
 def process_jormungandr_metrics():
+    # Process jcli returned metrics
     metrics = jcli_rest(['node', 'stats', 'get'])
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
     except:
         print(f'failed to parse lastBlockTime: {metrics["lastBlockTime"]}')
-        metrics['lastBlockTime'] = False
+        metrics['lastBlockTime'] = NaN
     for metric, gauge in jormungandr_metrics.items():
         gauge.set(sanitize(metrics[metric]))
+
+    # Process pieced metrics from jcli parent metrics
+    try:
+        blockHashPieces = {}
+        lastBlockHashProcess = hex(int(metrics['lastBlockHash'],16))[2:]
+        for i, (x, y) in enumerate(list(zip(range(-64,8,8),range(-56,8,8))),1):
+            if y == 0:
+                y = None
+            blockHashPieces['lastBlockHashPiece'+str(i)] = int(lastBlockHashProcess[slice(x,y)],16)
+        for metric, gauge in jormungandr_pieces.items():
+            gauge.set(sanitize(blockHashPieces[metric]))
+    except:
+        print(f'failed to parse lastBlockHash pieces: {metrics["lastBlockHash"]}')
+        for gauge in jormungandr_pieces.values():
+            gauge.set(NaN)
 
 
 JORMUNGANDR_ADDRESSES_REQUEST_TIME = Summary(
@@ -83,9 +120,9 @@ def sanitize(metric):
             try:
                 metric = int(metric, 16)
             except ValueError:
-                metric = False
+                metric = NaN
     elif not isinstance(metric, (float, int)):
-        metric = False
+        metric = NaN
     return metric
 
 
@@ -109,5 +146,5 @@ if __name__ == '__main__':
             print("failed to process jormungandr metrics")
             for d in to_reset:
                 for gauge in d.values():
-                    gauge.set(False)
+                    gauge.set(NaN)
         time.sleep(SLEEP_TIME)
