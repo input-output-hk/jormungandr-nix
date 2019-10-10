@@ -253,7 +253,7 @@ def main():
     if args.restapi is not None:
         api_url_base = args.restapi
     else:
-        api_url_base = os.environ.get("JORMUNGANDR_API", "http://localhost:3001/api")
+        api_url_base = os.environ.get("JORMUNGANDR_RESTAPI_URL", "http://localhost:3001/api")
     api_url = f"{api_url_base}/v0"
 
     if args.stats == True:
@@ -308,7 +308,7 @@ if __name__ == "__main__":
                         help="Analyse the current epoch, cross referencing both block aggregate and stake distributions")
 
     parser.add_argument("-r", "--restapi", nargs="?", metavar="RESTAPI", type=str, const="http://127.0.0.1:3001/api",
-                        help="Set the rest api to utilize; by default: \"http://127.0.0.1:3001/api\".  An env var of JORMUNGANDR_API can also be seperately set. ")
+                        help="Set the rest api to utilize; by default: \"http://127.0.0.1:3001/api\".  An env var of JORMUNGANDR_RESTAPI_URL can also be seperately set. ")
 
     args = parser.parse_args()
 
