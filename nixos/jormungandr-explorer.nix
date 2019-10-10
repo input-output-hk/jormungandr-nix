@@ -28,12 +28,12 @@ in {
       };
 
       jormungandrApi = mkOption {
-        type = types.string;
+        type = types.str;
         default = "http://localhost/explorer/graphql";
       };
 
       virtualHost = mkOption {
-        type = types.string;
+        type = types.str;
         default = "jormungandr-explorer.localhost";
       };
 

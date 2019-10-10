@@ -19,12 +19,12 @@ in {
       enable = mkEnableOption "jormungandr monitor";
 
       monitorAddresses = mkOption {
-        type = types.listOf types.string;
+        type = types.listOf types.str;
         default = [ ];
       };
 
       jormungandrApi = mkOption {
-        type = types.string;
+        type = types.str;
         default = "http://${cfgJormungandr.rest.listenAddress}/api";
       };
 

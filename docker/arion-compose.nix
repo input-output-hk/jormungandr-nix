@@ -6,12 +6,12 @@
 
       nixos.configuration = {config, pkgs, ...}: (import ../nixos) // {
         boot.isContainer = true;
-        
+
         services.jormungandr = {
           enable = true;
           block0 = ../block-0.bin;
         };
-        
+
         system.build.run-jormungandr = pkgs.writeScript "run-jormungandr" ''
             #!${pkgs.bash}/bin/bash
             PATH='${config.systemd.services.jormungandr.environment.PATH}'
