@@ -35,6 +35,7 @@ in rec {
   react-scripts = mkYarnPackage {
     name = "react-scripts";
     inherit src;
+    inherit nodejs;
 
     packageJSON = ../package.json;
     yarnLock = ../yarn.lock;
@@ -54,8 +55,8 @@ in rec {
         postInstall = ''
           ${nodejs}/lib/node_modules/npm/bin/node-gyp-bin/node-gyp configure
           ${nodejs}/lib/node_modules/npm/bin/node-gyp-bin/node-gyp build
-          mkdir -p vendor/linux-x64-57
-          mv build/Release/binding.node vendor/linux-x64-57/binding.node
+          mkdir -p vendor/linux-x64-72
+          mv build/Release/binding.node vendor/linux-x64-72/binding.node
         '';
       };
     };

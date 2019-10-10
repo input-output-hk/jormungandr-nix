@@ -1,9 +1,10 @@
 { sources ? import ../nix/sources.nix }:
 with
-  { overlay = _: pkgs:
+  { overlay = self: super:
       { inherit (import sources.niv {}) niv;
-        packages = pkgs.callPackages ./packages.nix {};
-        inherit (import sources.yarn2nix { inherit pkgs; }) yarn2nix mkYarnPackage mkYarnModules;
+        nodejs = super.nodejs-12_x;
+        packages = self.callPackages ./packages.nix {};
+        inherit (import sources.yarn2nix { pkgs = self; }) yarn2nix mkYarnPackage mkYarnModules;
         js-chain-libs = sources.js-chain-libs;
       };
   };
