@@ -1,6 +1,7 @@
 { package
 , jcli
 , genesisHash
+, trustedPeers
 , color
 , rootDir ? "./state-jormungandr"
 , storage ? "./storage"
@@ -11,15 +12,6 @@
 , logConfig ? {}
 , listenAddress ? null
 , publicAddress ? null
-, trustedPeers ? [
-    "/ip4/3.123.177.192/tcp/3000"
-    "/ip4/3.123.155.47/tcp/3000"
-    "/ip4/52.57.157.167/tcp/3000"
-    "/ip4/3.112.185.217/tcp/3000"
-    "/ip4/18.140.134.230/tcp/3000"
-    "/ip4/18.139.40.4/tcp/3000"
-    "/ip4/3.115.57.216/tcp/3000"
-  ]
 , topicsOfInterest ? null
 , pkgs
 , lib

@@ -24,9 +24,36 @@ let
   snapReviewTools = rustPkgs.callPackage ./nix/snap-review-tools.nix {
     inherit squashfsTools;
   };
+  genesisHash = "adbdd5ede31637f6c9bad5c271eec0bc3d0cb9efb86a5b913bb55cba549d0770";
+  trustedPeers = [
+    "/ip4/3.123.177.192/tcp/3000"
+    "/ip4/3.123.155.47/tcp/3000"
+    "/ip4/52.57.157.167/tcp/3000"
+    "/ip4/3.112.185.217/tcp/3000"
+    "/ip4/18.140.134.230/tcp/3000"
+    "/ip4/18.139.40.4/tcp/3000"
+    "/ip4/3.115.57.216/tcp/3000"
+  ];
+  defaultJormungandrConfig = {
+    log = {
+      level = "info";
+      format = "plain";
+      output = "stderr";
+    };
+    rest = {
+      listen = "127.0.0.1:3100";
+    };
+    p2p = {
+      trusted_peers = trustedPeers;
+      topics_of_interest = {
+        messages = "low";
+        blocks = "normal";
+      };
+    };
+  };
 in
 rec {
-  inherit sources iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools choco;
+  inherit sources iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools choco genesisHash trustedPeers defaultJormungandrConfig;
   pkgs = rustPkgs.extend (self: super: {
     uuidgen = if self.stdenv.isLinux
       then super.runCommand "uuidgen" {} ''
