@@ -106,13 +106,42 @@ in {
         '';
       };
 
-      trustedPeersAddresses = mkOption {
-        type = types.listOf types.str;
+      trustedPeers = mkOption {
+        type = types.listOf (types.submodule {
+          options = {
+            address = mkOption {
+              type = types.str;
+              description = ''
+                IP address in the format of:
+                /ip4/127.0.0.1/tcp/8080 or /ip6/::1/tcp/8080
+              '';
+            };
+
+            id = mkOption {
+              type = types.str;
+              description = ''
+                public key of the node, output of:
+                `echo $private_key | jcli key to-public`
+              '';
+            };
+          };
+        });
         default = [];
-        example = [ "/ip4/104.24.28.11/tcp/8299" ];
         description = ''
           the list of nodes to connect to in order to bootstrap the p2p topology
           (and bootstrap our local blockchain).
+        '';
+      };
+
+      privateId = mkOption {
+        type = types.str;
+        default = lib.fileContents (pkgs.runCommand "jormungandrPrivateId" {buildInputs = [ cfg.jcliPackage ]; } ''
+          echo "echo generate key for ${cfg.publicAddress}"
+          jcli key generate --type Ed25519 > $out
+        '');
+        description = ''
+          Needed to make a node publicly reachable.
+          Generate with `jcli key generate --type Ed25519`.
         '';
       };
 
@@ -240,8 +269,12 @@ in {
           };
           p2p = filterAttrs (key: value: value != null) {
             public_address = cfg.publicAddress;
+            private_id = cfg.privateId;
 
-            trusted_peers = cfg.trustedPeersAddresses;
+            trusted_peers = map (peer: {
+              address = peer.address;
+              id = peer.id;
+            }) cfg.trustedPeers;
             topics_of_interest = cfg.topicsOfInterest;
             listen_address = cfg.listenAddress;
             max_connections = cfg.maxConnections;
