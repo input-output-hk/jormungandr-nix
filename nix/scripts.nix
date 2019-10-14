@@ -453,6 +453,14 @@ in let
 
     jcli rest v0 message logs -h "$REST_URL" --output-format json | jq ".[] | select (.fragment_id == \"$TXID\")"
     '';
+
+  janalyze = let
+      python = pkgs.python3.withPackages (ps: with ps; [ requests tabulate ]);
+    in pkgs.runCommand "janalyze" {} ''
+      sed "s|env nix-shell$|env ${python}/bin/python|" ${../scripts/janalyze.py} > $out
+      chmod +x $out
+    '';
+
   shells = let
     bootstrap = pkgs.callPackage ./shells/bootstrap.nix args;
     base = pkgs.stdenv.mkDerivation {
@@ -505,5 +513,6 @@ in let
     });
   in { inherit testnet devops bootstrap; };
 in {
-  inherit shells runJormungandr runJormungandrSnappy createStakePool sendFunds sendCertificate delegateStake;
+  inherit shells runJormungandr runJormungandrSnappy createStakePool sendFunds
+          sendCertificate delegateStake janalyze;
 }
