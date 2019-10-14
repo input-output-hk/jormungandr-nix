@@ -457,8 +457,9 @@ in let
   janalyze = let
       python = pkgs.python3.withPackages (ps: with ps; [ requests tabulate ]);
     in pkgs.runCommand "janalyze" {} ''
-      sed "s|env nix-shell$|env ${python}/bin/python|" ${../scripts/janalyze.py} > $out
-      chmod +x $out
+      mkdir -p $out/bin
+      sed "s|env nix-shell$|env ${python}/bin/python|" ${../scripts/janalyze.py} > $out/bin/janalyze
+      chmod +x $out/bin/janalyze
     '';
 
   shells = let
