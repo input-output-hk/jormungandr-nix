@@ -65,7 +65,7 @@ in {
 
       genesisBlockHash = mkOption {
         type = types.nullOr types.str;
-        default = null;
+        default = (import ../lib.nix).genesisHash;
         description = ''
           Genesis Block Hash
         '';
@@ -126,7 +126,7 @@ in {
             };
           };
         });
-        default = [];
+        default = (import ../lib.nix).trustedPeers;
         description = ''
           the list of nodes to connect to in order to bootstrap the p2p topology
           (and bootstrap our local blockchain).

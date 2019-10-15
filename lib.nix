@@ -26,13 +26,34 @@ let
   };
   genesisHash = "adbdd5ede31637f6c9bad5c271eec0bc3d0cb9efb86a5b913bb55cba549d0770";
   trustedPeers = [
-    "/ip4/3.123.177.192/tcp/3000"
-    "/ip4/3.123.155.47/tcp/3000"
-    "/ip4/52.57.157.167/tcp/3000"
-    "/ip4/3.112.185.217/tcp/3000"
-    "/ip4/18.140.134.230/tcp/3000"
-    "/ip4/18.139.40.4/tcp/3000"
-    "/ip4/3.115.57.216/tcp/3000"
+      {
+        address = "/ip4/3.115.194.22/tcp/3000";
+        id = "ed25519_pk1npsal4j9p9nlfs0fsmfjyga9uqk5gcslyuvxy6pexxr0j34j83rsf98wl2";
+      }
+      {
+        address = "/ip4/13.113.10.64/tcp/3000";
+        id = "ed25519_pk16pw2st5wgx4558c6temj8tzv0pqc37qqjpy53fstdyzwxaypveys3qcpfl";
+      }
+      {
+        address = "/ip4/52.57.214.174/tcp/3000";
+        id = "ed25519_pk1v4cj0edgmp8f2m5gex85jglrs2ruvu4z7xgy8fvhr0ma2lmyhtyszxtejz";
+      }
+      {
+        address = "/ip4/3.120.96.93/tcp/3000";
+        id = "ed25519_pk10gmg0zkxpuzkghxc39n3a646pdru6xc24rch987cgw7zq5pmytmszjdmvh";
+      }
+      {
+        address = "/ip4/52.28.134.8/tcp/3000";
+        id = "ed25519_pk1unu66eej6h6uxv4j4e9crfarnm6jknmtx9eknvq5vzsqpq6a9vxqr78xrw";
+      }
+      {
+        address = "/ip4/13.52.208.132/tcp/3000";
+        id = "ed25519_pk15ppd5xlg6tylamskqkxh4rzum26w9acph8gzg86w4dd9a88qpjms26g5q9";
+      }
+      {
+        address = "/ip4/54.153.19.202/tcp/3000";
+        id = "ed25519_pk1j9nj2u0amlg28k27pw24hre0vtyp3ge0xhq6h9mxwqeur48u463s0crpfk";
+      }
   ];
   defaultJormungandrConfig = {
     log = {
