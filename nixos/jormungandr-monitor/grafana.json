@@ -15,7 +15,6 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 4,
   "links": [],
   "panels": [
     {
@@ -295,7 +294,7 @@
         "x": 12,
         "y": 10
       },
-      "id": 9,
+      "id": 18,
       "interval": "",
       "legend": {
         "avg": false,
@@ -322,7 +321,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_uptime",
+          "expr": "jormungandr_connections",
+          "format": "time_series",
+          "intervalFactor": 1,
           "legendFormat": "{{alias}}",
           "refId": "A"
         }
@@ -331,7 +332,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Jormungandr Uptime",
+      "title": "Jormungandr Connections",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -347,7 +348,7 @@
       },
       "yaxes": [
         {
-          "format": "s",
+          "format": "none",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -469,7 +470,7 @@
         "x": 12,
         "y": 20
       },
-      "id": 4,
+      "id": 9,
       "interval": "",
       "legend": {
         "avg": false,
@@ -496,7 +497,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_lastBlockFees",
+          "expr": "jormungandr_uptime",
           "legendFormat": "{{alias}}",
           "refId": "A"
         }
@@ -505,7 +506,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Jormungandr Last Block Fees",
+      "title": "Jormungandr Uptime",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -521,7 +522,7 @@
       },
       "yaxes": [
         {
-          "format": "none",
+          "format": "s",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -643,7 +644,7 @@
         "x": 12,
         "y": 30
       },
-      "id": 7,
+      "id": 4,
       "interval": "",
       "legend": {
         "avg": false,
@@ -670,7 +671,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_lastBlockTime * 1000",
+          "expr": "jormungandr_lastBlockFees",
           "legendFormat": "{{alias}}",
           "refId": "A"
         }
@@ -679,7 +680,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Jormungandr Last Block Time",
+      "title": "Jormungandr Last Block Fees",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -695,7 +696,7 @@
       },
       "yaxes": [
         {
-          "format": "dateTimeAsIso",
+          "format": "none",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -811,12 +812,13 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 12,
         "y": 40
       },
-      "id": 14,
+      "id": 7,
+      "interval": "",
       "legend": {
         "avg": false,
         "current": false,
@@ -842,7 +844,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_faucetCounter > 0",
+          "expr": "jormungandr_lastBlockTime * 1000",
           "legendFormat": "{{alias}}",
           "refId": "A"
         }
@@ -851,7 +853,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Faucet Tx Counter",
+      "title": "Jormungandr Last Block Time",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -867,7 +869,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "dateTimeAsIso",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -984,13 +986,12 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 10,
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 48
+        "y": 50
       },
-      "id": 16,
-      "interval": "",
+      "id": 14,
       "legend": {
         "avg": false,
         "current": false,
@@ -1016,7 +1017,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "node_filefd_allocated",
+          "expr": "jormungandr_faucetCounter > 0",
           "legendFormat": "{{alias}}",
           "refId": "A"
         }
@@ -1025,7 +1026,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "File Descriptors",
+      "title": "Faucet Tx Counter",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1041,7 +1042,7 @@
       },
       "yaxes": [
         {
-          "format": "none",
+          "format": "short",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -1150,6 +1151,93 @@
       }
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "prometheus",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 58
+      },
+      "id": 16,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "node_filefd_allocated",
+          "legendFormat": "{{alias}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "File Descriptors",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
       "cacheTimeout": null,
       "columns": [],
       "datasource": "prometheus",
@@ -1221,14 +1309,14 @@
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 18,
+  "schemaVersion": 20,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -1259,5 +1347,5 @@
   "timezone": "",
   "title": "Jormungandr Monitor",
   "uid": "TYH5MFtWz",
-  "version": 5
+  "version": 2
 }
