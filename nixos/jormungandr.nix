@@ -65,7 +65,7 @@ in {
 
       genesisBlockHash = mkOption {
         type = types.nullOr types.str;
-        default = (import ../lib.nix).genesisHash;
+        default = if (cfg.block0 != null) then null else(import ../lib.nix).genesisHash;
         description = ''
           Genesis Block Hash
         '';
