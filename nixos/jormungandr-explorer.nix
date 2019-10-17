@@ -51,16 +51,6 @@ in {
     services.jormungandr.enable = true;
     services.jormungandr.enableExplorer = true;
 
-    systemd.services.jormungandr-explorer = {
-      after = [ "jormungandr.service" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        User = "jormungandr-explorer";
-        DynamicUser = true;
-        Restart = "always";
-      };
-    };
-
     services.nginx = {
       enable = true;
       recommendedTlsSettings = true;
