@@ -757,9 +757,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_faucetFunds / 1e6 > 0",
-          "legendFormat": "{{alias}}",
+          "expr": "jormungandr_address_ca1sk39rfwgf3l4x636r70z7mnw8g7vxkekchn8jl476dx75v4p2tdqq9z8np4_funds / 1e6 > 0",
+          "legendFormat": "faucet {{alias}}",
           "refId": "A"
+        },
+        {
+          "expr": "jormungandr_address_ca1s5ec3pewqpk74qez25zr3akmxmlp95nasnvp6haudl47c92vqqjc2avye66_funds / 1e6 > 0",
+          "legendFormat": "hodl {{alias}}",
+          "refId": "B"
         }
       ],
       "thresholds": [],
@@ -1017,9 +1022,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_faucetCounter > 0",
-          "legendFormat": "{{alias}}",
+          "expr": "jormungandr_address_ca1sk39rfwgf3l4x636r70z7mnw8g7vxkekchn8jl476dx75v4p2tdqq9z8np4_counts > 0",
+          "legendFormat": "faucet {{alias}}",
           "refId": "A"
+        },
+        {
+          "expr": "jormungandr_address_ca1s5ec3pewqpk74qez25zr3akmxmlp95nasnvp6haudl47c92vqqjc2avye66_counts > 0",
+          "legendFormat": "hodl {{alias}}",
+          "refId": "B"
         }
       ],
       "thresholds": [],
@@ -1347,5 +1357,5 @@
   "timezone": "",
   "title": "Jormungandr Monitor",
   "uid": "TYH5MFtWz",
-  "version": 2
+  "version": 1
 }
