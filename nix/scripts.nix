@@ -475,6 +475,7 @@ in let
         delegateStake
         checkTxStatus
         runJormungandr
+        janalyze
       ];
       shellHook = ''
         echo "Jormungandr Testnet" '' + (if color then ''\

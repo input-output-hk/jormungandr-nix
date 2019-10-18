@@ -87,4 +87,4 @@ rec {
       '';
   });
   inherit (pkgs) lib;
-}
+} // iohkNix.jormungandrLib
