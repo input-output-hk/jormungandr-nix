@@ -23,7 +23,9 @@ NODE_METRICS = [
     "lastBlockTx",
     "txRecvCnt",
     "uptime",
-    "connections"
+    "connections",
+    "lastBlockEpoch",
+    "lastBlockSlot"
 ]
 PIECE_METRICS = [
     "lastBlockHashPiece1",
@@ -78,12 +80,21 @@ JORMUNGANDR_METRICS_REQUEST_TIME = Summary(
 def process_jormungandr_metrics():
     # Process jcli returned metrics
     metrics = jcli_rest(['node', 'stats', 'get'])
+
     metrics['connections'] = len(jcli_rest(['network', 'stats', 'get']))
+
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
     except:
         print(f'failed to parse lastBlockTime: {metrics["lastBlockTime"]}')
         metrics['lastBlockTime'] = NaN
+
+    try:
+        metrics['lastBlockEpoch'] = metrics['lastBlockDate'].split('.')[0]
+        metrics['lastBlockSlot'] = metrics['lastBlockDate'].split('.')[1]
+    except:
+        print(f'failed to parse lastBlockDate into pieces: {metrics["lastBlockDate"]}')
+
     for metric, gauge in jormungandr_metrics.items():
         gauge.set(sanitize(metrics[metric]))
 
