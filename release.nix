@@ -24,7 +24,7 @@ let
   jobs = {
     inherit jormungandrConfigs;
   } // (mkRequiredJob ([
-      jobs.jormungandrConfigs.stable
+      jobs.jormungandrConfigs.beta
       jobs.jormungandrConfigs.nightly
     ]));
 in jobs
