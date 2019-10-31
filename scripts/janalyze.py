@@ -44,6 +44,39 @@ def parse_block(block):
       "pool": block[168:232],
     }
 
+def aggregateall():
+    tip = get_tip()
+    block = parse_block(get_block(tip))
+    currentEpoch = block['epoch']
+    poolTotal = {}
+    blockTotal = 0
+
+    while block["parent"] != ("0" * 64):
+        if args.aggregateall > 0:
+            if (currentEpoch - args.aggregateall + 1) > block['epoch']:
+                break
+        pool = block["pool"]
+        if pool not in poolTotal:
+            poolTotal[pool] = {}
+            poolTotal[pool]['blocks'] = 1
+        else:
+            poolTotal[pool]['blocks'] = poolTotal[pool]['blocks'] + 1
+        block = parse_block(get_block(block['parent']))
+        blockTotal += 1
+        lowestEpoch = block['epoch']
+
+    if args.aggregateall > 0:
+        print(f'\nJormungandr Block Aggregate for epochs {lowestEpoch + 1} -  {currentEpoch}:\n')
+    else:
+        print('\nJormungandr Overall Block Aggregate:\n')
+
+    headers = [f'Pool (Node ID)', "Blocks (#)", "Block Percent (%)"]
+    table = []
+    for pool, data in poolTotal.items():
+       record = [ pool, data['blocks'], data['blocks'] / blockTotal * 100 ]
+       table.append(record)
+    print(f'{tabulate(sorted(table, key=lambda x: x[0]), headers, tablefmt="psql")}')
+    print(f'TotalBlocks: {blockTotal} \n')
 
 def aggregate(silent=False):
 
@@ -259,6 +292,9 @@ def main():
     if args.stats == True:
         stats()
 
+    if args.aggregateall is not None:
+        aggregateall()
+
     if args.aggregate is not None:
         aggregate()
 
@@ -279,6 +315,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=(
         "Jormungandr analysis tools\n\n"),
         formatter_class=RawTextHelpFormatter)
+
+    parser.add_argument("-aa", "--aggregateall", nargs="?", metavar="X", type=check_int, const=0,
+                        help="Calculate total block creation per pool for X epochs time starting with the tip or leave blank for all")
 
     parser.add_argument("-a", "--aggregate", nargs="?", metavar="X", type=check_int, const=1,
                         help="Calculate aggregate block creation per pool for X epochs starting with the tip epoch (default = 1)")
