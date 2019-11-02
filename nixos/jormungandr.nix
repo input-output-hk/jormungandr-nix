@@ -120,8 +120,7 @@ in {
             id = mkOption {
               type = types.str;
               description = ''
-                public key of the node, output of:
-                `echo $private_key | jcli key to-public`
+                public key of the node
               '';
             };
           };
@@ -133,11 +132,11 @@ in {
         '';
       };
 
-      privateId = mkOption {
+      publicId = mkOption {
         type = types.str;
         default = lib.fileContents (pkgs.runCommand "jormungandrPrivateId" {buildInputs = [ cfg.jcliPackage ]; } ''
           echo "echo generate key for ${cfg.publicAddress}"
-          jcli key generate --type Ed25519 > $out
+          openssl rand -hex 24 > $out
         '');
         description = ''
           Needed to make a node publicly reachable.
@@ -269,7 +268,7 @@ in {
           };
           p2p = filterAttrs (key: value: value != null) {
             public_address = cfg.publicAddress;
-            private_id = cfg.privateId;
+            public_id = cfg.publicId;
 
             trusted_peers = map (peer: {
               address = peer.address;
