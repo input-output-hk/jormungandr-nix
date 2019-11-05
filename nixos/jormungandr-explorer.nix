@@ -82,7 +82,7 @@ in {
         ${cfg.virtualHost} = let
           headers = ''
             add_header 'Vary' 'Origin' always;
-            add_header 'Access-Control-Allow-Origin' $origin always;
+            add_header 'access-control-allow-origin' https://shelley-testnet-explorer-qa.netlify.com always;
             add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS always';
             add_header 'Access-Control-Allow-Headers' 'User-Agent,X-Requested-With,Content-Type' always;
           '';
@@ -97,6 +97,26 @@ in {
           };
 
           locations."/explorer/graphql" = {
+            extraConfig = ''
+              if ($request_method = OPTIONS) {
+                ${headers}
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+                break;
+              }
+
+              if ($request_method = POST) {
+                ${headers}
+              }
+
+              proxy_pass http://${config.services.jormungandr.rest.listenAddress};
+              proxy_set_header Host $host:$server_port;
+              proxy_set_header X-Real-IP $remote_addr;
+            '';
+          };
+          locations."/api/v0/settings" = {
             extraConfig = ''
               if ($request_method = OPTIONS) {
                 ${headers}
