@@ -1,8 +1,6 @@
 {
   "name": "jormungandr-explorer",
   "keywords": [
-    "cardano",
-    "ada",
     "jormungandr",
     "cryptocurrency",
     "crypto",
@@ -14,12 +12,18 @@
   "private": true,
   "dependencies": {
     "@reach/router": "1.2.1",
+    "antd": "3.24.1",
+    "big.js": "5.2.2",
     "bootstrap": "4.3.1",
     "graphql": "14.5.8",
+    "lodash": "4.17.15",
+    "moment": "2.24.0",
     "node-sass": "4.12.0",
     "react": "16.9.0",
     "react-bootstrap": "1.0.0-beta.12",
+    "react-copy-to-clipboard": "5.0.1",
     "react-dom": "16.9.0",
+    "react-moment": "0.9.6",
     "react-relay": "6.0.0",
     "react-scripts": "3.1.1"
   },

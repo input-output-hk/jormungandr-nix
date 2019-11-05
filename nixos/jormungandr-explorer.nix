@@ -13,13 +13,7 @@ in {
       package = mkOption {
         type = types.package;
         default = (import ../. { }).explorerFrontend {
-          configJSON = toFile "config.json" (toJSON {
-            explorerUrl = cfg.jormungandrApi;
-            currency = {
-              symbol = "ADA";
-              decimals = 6;
-            };
-          });
+          configJSON = cfg.configFile;
         };
         defaultText = "explorerFrontend";
         description = ''
@@ -30,6 +24,27 @@ in {
       jormungandrApi = mkOption {
         type = types.str;
         default = "http://localhost/explorer/graphql";
+      };
+
+      configFile = mkOption {
+        type = types.path;
+        default = toFile "config.json" (toJSON {
+          explorerUrl = cfg.jormungandrApi;
+          networkSettings = {
+            genesisTimestamp = 1569335341;
+            slotsPerEpoch = 5000;
+            slotDuration = 2;
+          };
+          assuranceLevels = {
+            low = 3;
+            medium = 7;
+            high = 9;
+          };
+          currency = {
+            symbol = "ADA";
+            decimals = 6;
+          };
+        });
       };
 
       virtualHost = mkOption {

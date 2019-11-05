@@ -41,10 +41,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "js-chain-libs",
-        "rev": "0d04de5792f25d3458e6060bc4dd0610f0302831",
-        "sha256": "1pl7fmx5cg87rj7dyxycqvl54d2qx5dnw9fcqd9b2vifw9b7hwfi",
+        "rev": "5286a9586481486cd867bcbcaa2211add8d856b5",
+        "sha256": "1wi18ys9gwlfpcqgvkg9mbl9c4mkihb6yxmajz48iv7b0lm1p83z",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/js-chain-libs/archive/0d04de5792f25d3458e6060bc4dd0610f0302831.tar.gz",
+        "url": "https://github.com/input-output-hk/js-chain-libs/archive/5286a9586481486cd867bcbcaa2211add8d856b5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -81,6 +81,18 @@
         "sha256": "0aymjc693dxjxmlm9kklyxsd796x868v3jrryjms70bv3w1776nz",
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs-channels/archive/1129f6b0dbc3b7739972c9b0e53359633f32b31b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "yarn2nix": {
+        "branch": "master",
+        "description": "Generate nix expressions from a yarn.lock file",
+        "homepage": null,
+        "owner": "moretea",
+        "repo": "yarn2nix",
+        "rev": "7effadded30d611a460e212cb73614506ef61c52",
+        "sha256": "0r4ww3mjx3n7bn2v1iav33liyphyr2x005ak6644qs15bp4bn3cr",
+        "type": "tarball",
+        "url": "https://github.com/moretea/yarn2nix/archive/7effadded30d611a460e212cb73614506ef61c52.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
