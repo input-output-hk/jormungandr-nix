@@ -79,26 +79,14 @@ in {
                           '"$request" $status $body_bytes_sent '
                           '"$http_referer" "$http_user_agent" "$http_x_forwarded_for"';
         access_log syslog:server=unix:/dev/log x-fwd;
-
-        map $http_origin $origin_allowed {
-          default 0;
-          https://webdevc.iohk.io 1;
-          https://testnet.iohkdev.io 1;
-          http://127.0.0.1:4000 1;
-        }
-
-        map $origin_allowed $origin {
-          default "";
-          1 $http_origin;
-        }
       '';
 
       virtualHosts = {
         ${cfg.virtualHost} = let
           headers = ''
             add_header 'Vary' 'Origin' always;
-            add_header 'access-control-allow-origin' https://shelley-testnet-explorer-qa.netlify.com always;
-            add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS always';
+            add_header 'access-control-allow-origin' $origin always;
+            add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS, GET always';
             add_header 'Access-Control-Allow-Headers' 'User-Agent,X-Requested-With,Content-Type' always;
           '';
         in {
@@ -142,8 +130,8 @@ in {
                 break;
               }
 
-              if ($request_method = POST) {
-                ${headers}
+              if ($request_method = GET) {
+               ${headers}
               }
 
               proxy_pass http://${config.services.jormungandr.rest.listenAddress};
