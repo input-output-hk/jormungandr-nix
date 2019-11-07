@@ -29,6 +29,7 @@ in rec {
 
     packageJSON = ../package.json;
     yarnLock = ../yarn.lock;
+    yarnNix = ../yarn.nix;
   };
 
   react-scripts = mkYarnPackage {
@@ -38,6 +39,7 @@ in rec {
 
     packageJSON = ../package.json;
     yarnLock = ../yarn.lock;
+    yarnNix = ../yarn.nix;
 
     publishBinsFor = ["react-scripts" "relay-compiler"];
 
