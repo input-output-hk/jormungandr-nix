@@ -1,4 +1,4 @@
-{ sources ? import ../nix/sources.nix }:
+{ sources ? import ../../nix/sources.nix }:
 with
   { overlay = self: super:
       { inherit (import sources.niv {}) niv;

@@ -13,13 +13,7 @@ in {
       package = mkOption {
         type = types.package;
         default = (import ../. { }).explorerFrontend {
-          configJSON = toFile "config.json" (toJSON {
-            explorerUrl = cfg.jormungandrApi;
-            currency = {
-              symbol = "ADA";
-              decimals = 6;
-            };
-          });
+          configJSON = cfg.configFile;
         };
         defaultText = "explorerFrontend";
         description = ''
@@ -30,6 +24,27 @@ in {
       jormungandrApi = mkOption {
         type = types.str;
         default = "http://localhost/explorer/graphql";
+      };
+
+      configFile = mkOption {
+        type = types.path;
+        default = toFile "config.json" (toJSON {
+          explorerUrl = cfg.jormungandrApi;
+          networkSettings = {
+            genesisTimestamp = 1569335341;
+            slotsPerEpoch = 5000;
+            slotDuration = 2;
+          };
+          assuranceLevels = {
+            low = 3;
+            medium = 7;
+            high = 9;
+          };
+          currency = {
+            symbol = "ADA";
+            decimals = 6;
+          };
+        });
       };
 
       virtualHost = mkOption {
@@ -64,26 +79,14 @@ in {
                           '"$request" $status $body_bytes_sent '
                           '"$http_referer" "$http_user_agent" "$http_x_forwarded_for"';
         access_log syslog:server=unix:/dev/log x-fwd;
-
-        map $http_origin $origin_allowed {
-          default 0;
-          https://webdevc.iohk.io 1;
-          https://testnet.iohkdev.io 1;
-          http://127.0.0.1:4000 1;
-        }
-
-        map $origin_allowed $origin {
-          default "";
-          1 $http_origin;
-        }
       '';
 
       virtualHosts = {
         ${cfg.virtualHost} = let
           headers = ''
             add_header 'Vary' 'Origin' always;
-            add_header 'Access-Control-Allow-Origin' $origin always;
-            add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS always';
+            add_header 'access-control-allow-origin' $origin always;
+            add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS, GET always';
             add_header 'Access-Control-Allow-Headers' 'User-Agent,X-Requested-With,Content-Type' always;
           '';
         in {
@@ -109,6 +112,26 @@ in {
 
               if ($request_method = POST) {
                 ${headers}
+              }
+
+              proxy_pass http://${config.services.jormungandr.rest.listenAddress};
+              proxy_set_header Host $host:$server_port;
+              proxy_set_header X-Real-IP $remote_addr;
+            '';
+          };
+          locations."/api/v0/settings" = {
+            extraConfig = ''
+              if ($request_method = OPTIONS) {
+                ${headers}
+                add_header 'Access-Control-Max-Age' 1728000;
+                add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
+                return 204;
+                break;
+              }
+
+              if ($request_method = GET) {
+               ${headers}
               }
 
               proxy_pass http://${config.services.jormungandr.rest.listenAddress};

@@ -29,10 +29,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "15af9b3c944ee590d7e63a9ff79edf5b0443cca4",
-        "sha256": "1xdl2nrr1nbm5rq8fd3bpm6ngg9c39mmfqb07a5056gzg4b04kgy",
+        "rev": "e893fd5cebbb6f910170c2e51effe4ee9eed2886",
+        "sha256": "068zqi6l4m2ikysbq2rp202ldxhkb1r7nrhv37vjrp932d7dxaw4",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/15af9b3c944ee590d7e63a9ff79edf5b0443cca4.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/e893fd5cebbb6f910170c2e51effe4ee9eed2886.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "js-chain-libs": {
@@ -41,10 +41,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "js-chain-libs",
-        "rev": "0d04de5792f25d3458e6060bc4dd0610f0302831",
-        "sha256": "1pl7fmx5cg87rj7dyxycqvl54d2qx5dnw9fcqd9b2vifw9b7hwfi",
+        "rev": "a9a215519e7d45ea4fac268c73d81fedd246f0f3",
+        "sha256": "1h5328i3v4bb5sq10xbc3z04zlnahkhv2a8g4aiahgvmgy048lw8",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/js-chain-libs/archive/0d04de5792f25d3458e6060bc4dd0610f0302831.tar.gz",
+        "url": "https://github.com/input-output-hk/js-chain-libs/archive/a9a215519e7d45ea4fac268c73d81fedd246f0f3.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -81,6 +81,18 @@
         "sha256": "0aymjc693dxjxmlm9kklyxsd796x868v3jrryjms70bv3w1776nz",
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs-channels/archive/1129f6b0dbc3b7739972c9b0e53359633f32b31b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "yarn2nix": {
+        "branch": "master",
+        "description": "Generate nix expressions from a yarn.lock file",
+        "homepage": null,
+        "owner": "moretea",
+        "repo": "yarn2nix",
+        "rev": "7effadded30d611a460e212cb73614506ef61c52",
+        "sha256": "0r4ww3mjx3n7bn2v1iav33liyphyr2x005ak6644qs15bp4bn3cr",
+        "type": "tarball",
+        "url": "https://github.com/moretea/yarn2nix/archive/7effadded30d611a460e212cb73614506ef61c52.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

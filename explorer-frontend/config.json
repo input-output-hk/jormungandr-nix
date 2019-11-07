@@ -1,5 +1,15 @@
 {
   "explorerUrl": "http://explorer.jormungandr/explorer/graphql",
+    "networkSettings": {
+    "genesisTimestamp": 1569335341,
+    "slotsPerEpoch": 5000,
+    "slotDuration": 2
+  },
+  "assuranceLevels": {
+    "low": 3,
+    "medium": 7,
+    "high": 9
+  },
   "currency": {
     "symbol": "ADA",
     "decimals": 6
