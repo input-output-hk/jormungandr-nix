@@ -133,20 +133,17 @@ in {
       };
 
       publicId = mkOption {
-        type = types.str;
-        default = lib.fileContents (pkgs.runCommand "jormungandrPrivateId" {buildInputs = [ cfg.jcliPackage ]; } ''
-          echo "echo generate key for ${cfg.publicAddress}"
-          openssl rand -hex 24 > $out
-        '');
+        type = types.nullOr types.str;
+        default = null;
         description = ''
           Needed to make a node publicly reachable.
-          Generate with `jcli key generate --type Ed25519`.
+          Generate with `openssl rand -hex 24`.
         '';
       };
 
       publicAddress = mkOption {
-        type = types.str;
-        default = "/ip4/127.0.0.1/tcp/8606";
+        type = types.nullOr types.str;
+        default = null;
         description = ''
           the address to listen from and accept connection from.
           This is the public address that will be distributed to other peers of the network
@@ -181,6 +178,7 @@ in {
           Address to listen on for rest endpoint.
         '';
       };
+
       rest.cors.allowedOrigins = mkOption {
         type = types.listOf types.str;
         default = [];
