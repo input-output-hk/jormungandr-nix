@@ -1,7 +1,7 @@
 { supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
 , supportedCrossSystems ? [ "x86_64-linux" ]
 , scrubJobs ? true
-, jormungandr-nix ? { outPath = ./.; rev = "abcdef"; }
+, jormungandr ? { outPath = ./.; rev = "abcdef"; }
 , projectArgs ? { config = { allowUnfree = false; inHydra = true; }; }
 }:
 let
