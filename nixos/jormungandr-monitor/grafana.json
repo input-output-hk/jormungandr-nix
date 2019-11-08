@@ -862,13 +862,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "{__name__=~\"jormungandr_address_.*_funds\",alias=~\".*faucet.*\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "jormungandr_address_funds / 1e6",
+          "legendFormat": "{{addr}}",
           "refId": "A"
-        },
-        {
-          "expr": "",
-          "refId": "B"
         }
       ],
       "thresholds": [],
@@ -952,8 +948,8 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "{__name__=~\"jormungandr_address_.*_counts\",alias=~\".*faucet.*\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "jormungandr_address_counts",
+          "legendFormat": "{{addr}}",
           "refId": "A"
         }
       ],
