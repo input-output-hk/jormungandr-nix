@@ -48,27 +48,26 @@ def piece_gauge(metric):
     return Gauge(f'jormungandr_{metric}', 'Jormungandr {metric}')
 
 
-def funds_gauge(addr):
-    return Gauge(f'jormungandr_address_{addr}_funds',
-                 f'Jormungandr Address {addr} funds in Lovelace')
-
-
-def counts_gauge(addr):
-    return Gauge(f'jormungandr_address_{addr}_counts',
-                 f'Jormungandr Address {addr} counter')
-
-
 jormungandr_metrics = {metric: metric_gauge(metric) for metric in NODE_METRICS}
 jormungandr_pieces = {metric: piece_gauge(metric) for metric in PIECE_METRICS}
-jormungandr_funds = {addr: funds_gauge(addr) for addr in ADDRESSES}
-jormungandr_counts = {addr: counts_gauge(addr) for addr in ADDRESSES}
+
+jormungandr_funds = Gauge(f'jormungandr_address_funds',
+                                 f'Jomungandr Address funds in Lovelace',
+                                 ['addr'])
+jormungandr_counts = Gauge(f'jormungandr_address_counts',
+                                 f'Jomungandr Address counter',
+                                 ['addr'])
 
 to_reset = [
-    jormungandr_funds,
-    jormungandr_counts,
     jormungandr_metrics,
     jormungandr_pieces
 ]
+
+to_reset_with_labels = [
+    jormungandr_funds,
+    jormungandr_counts
+]
+
 
 JORMUNGANDR_METRICS_REQUEST_TIME = Summary(
     'jormungandr_metrics_process_time',
@@ -123,8 +122,8 @@ JORMUNGANDR_ADDRESSES_REQUEST_TIME = Summary(
 def process_jormungandr_addresses():
     for address in ADDRESSES:
         data = jcli_rest(['account', 'get', address])
-        jormungandr_funds[address].set(sanitize(data['value']))
-        jormungandr_counts[address].set(sanitize(data['counter']))
+        jormungandr_funds.labels(addr=address).set(sanitize(data['value']))
+        jormungandr_counts.labels(addr=address).set(sanitize(data['counter']))
 
 
 def sanitize(metric):
@@ -163,4 +162,6 @@ if __name__ == '__main__':
             for d in to_reset:
                 for gauge in d.values():
                     gauge.set(NaN)
+            for gauge in to_reset_with_labels:
+                gauge._metrics.clear()
         time.sleep(SLEEP_TIME)
