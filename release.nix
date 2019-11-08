@@ -12,8 +12,8 @@ in
 
 with (import commonLib.iohkNix.release-lib {
   inherit supportedSystems supportedCrossSystems scrubJobs projectArgs pkgs;
-  packageSet = import jormungandr-nix;
-  gitrev = jormungandr-nix.rev;
+  packageSet = import jormungandr;
+  gitrev = jormungandr.rev;
 });
 
 with pkgs.lib;
