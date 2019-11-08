@@ -6,8 +6,8 @@ let
 , color ? true
 , staking ? false
 , sendLogs ? false
-, genesisHash ? commonLib.environments.beta.genesisHash
-, trustedPeers ? commonLib.environments.beta.trustedPeers
+, genesisHash ? commonLib.environments.nightly.genesisHash
+, trustedPeers ? commonLib.environments.nightly.trustedPeers
 , topicsOfInterest ? null
 , customConfig ? {}
 , ...
