@@ -862,7 +862,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_address_funds / 1e6",
+          "expr": "jormungandr_address_funds{alias=~\"faucet.*\"} / 1e6",
           "legendFormat": "{{addr}}",
           "refId": "A"
         }
@@ -948,7 +948,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jormungandr_address_counts",
+          "expr": "jormungandr_address_counts{alias=~\"faucet.*\"}",
           "legendFormat": "{{addr}}",
           "refId": "A"
         }
