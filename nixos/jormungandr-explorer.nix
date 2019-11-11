@@ -86,7 +86,7 @@ in {
           headers = ''
             add_header 'Vary' 'Origin' always;
             add_header 'access-control-allow-origin' $origin always;
-            add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS, GET always';
+            add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS, GET' always;
             add_header 'Access-Control-Allow-Headers' 'User-Agent,X-Requested-With,Content-Type' always;
           '';
         in {
