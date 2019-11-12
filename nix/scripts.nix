@@ -217,7 +217,7 @@ in let
     --serial 1010101010 \
     --management-threshold 1 \
     --start-validity 0 > ''${STAKEPOOL_NAME}.cert
-    jcli certificate sign ''${STAKEPOOL_NAME}_owner_wallet.prv < ''${STAKEPOOL_NAME}.cert > ''${STAKEPOOL_NAME}.signcert
+    jcli certificate sign -k ''${STAKEPOOL_NAME}_owner_wallet.prv < ''${STAKEPOOL_NAME}.cert > ''${STAKEPOOL_NAME}.signcert
     jcli certificate get-stake-pool-id < ''${STAKEPOOL_NAME}.signcert > ''${STAKEPOOL_NAME}.id
     NODEID="$(cat ''${STAKEPOOL_NAME}.id)"
     VRFKEY="$(cat ''${STAKEPOOL_NAME}_vrf.prv)"
@@ -265,7 +265,7 @@ in let
     jcli certificate new stake-delegation \
       "$POOL" \
       "$SOURCE_PK" > ${rootDir}/stake_delegation.cert
-    jcli certificate sign "$SOURCE" < ${rootDir}/stake_delegation.cert > ${rootDir}/stake_delegation.signcert
+    jcli certificate sign -k "$SOURCE" < ${rootDir}/stake_delegation.cert > ${rootDir}/stake_delegation.signcert
 
     echo "Your delegation certificate is at ${rootDir}/stake_delegation.signcert."
     echo "You need to create a transaction to send the certificate to the blockchain."
