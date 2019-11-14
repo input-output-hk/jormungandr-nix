@@ -3,7 +3,7 @@
 , genesisHash
 , trustedPeers
 , color
-, rootDir ? "./state-jormungandr"
+, rootDir ? "./state-jormungandr-${environment}"
 , storage ? "./storage"
 , restListen ? "127.0.0.1:3001"
 , staking
@@ -13,6 +13,7 @@
 , listenAddress ? null
 , publicAddress ? null
 , topicsOfInterest ? null
+, environment ? "custom"
 , pkgs
 , lib
 , niv
@@ -509,6 +510,7 @@ in let
         echo " - jcli-stake-delegate-new"
         echo " - jcli-generate-account"
         echo " - jcli-generate-account-export-suffix"
+        echo "You are currently configured for environment ${environment}"
       '';
     });
     devops = base.overrideAttrs (oldAttrs: {
