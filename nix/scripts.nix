@@ -517,5 +517,5 @@ in let
   in { inherit testnet devops bootstrap; };
 in {
   inherit shells runJormungandr runJormungandrSnappy createStakePool sendFunds
-          sendCertificate delegateStake janalyze;
+          sendCertificate delegateStake janalyze checkTxStatus;
 }
