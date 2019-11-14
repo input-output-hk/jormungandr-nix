@@ -278,19 +278,19 @@ in let
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
-    REST_URL="${httpHost}"
+    JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'${httpHost}'}"
     while getopts 's:d:a:r:h' c
     do
       case "$c" in
         s) SOURCE="$OPTARG" ;;
         d) DEST="$OPTARG" ;;
         a) AMOUNT="$OPTARG" ;;
-        r) REST_URL="$OPTARG" ;;
+        r) JORMUNGANDR_RESTAPI_URL="$OPTARG" ;;
         *)
            echo "This command sends a funds transfer transaction to the blockchain."
            echo "usage: $0 -s -d -a -r [-h]"
            echo ""
-           echo "  -s Wallet to send funds from"
+           echo "  -s Path to key of Wallet to send funds from"
            echo "  -d Address to send funds to"
            echo "  -a Amount to send in Lovelace"
            echo "  -r REST endpoint to connect to (defaults to ${httpHost})"
@@ -311,26 +311,26 @@ in let
       exit 1
     fi
 
-    settings=$(curl -s "''${REST_URL}/v0/settings")
+    settings=$(curl -s "''${JORMUNGANDR_RESTAPI_URL}/v0/settings")
     FEE_CONSTANT="$(echo "$settings" | jq -r .fees.constant)"
     FEE_COEFFICIENT="$(echo "$settings" | jq -r .fees.coefficient)"
     BLOCK0_HASH="$(echo "$settings" | jq -r .block0Hash)"
     AMOUNT_WITH_FEES="$((AMOUNT + FEE_CONSTANT + 2 * FEE_COEFFICIENT))"
     TMPDIR="$(mktemp -d)"
     STAGING_FILE="''${TMPDIR}/staging.$$.transaction"
-    SOURCE_PK="$(echo "$SOURCE" | jcli key to-public)"
+    SOURCE_PK="$(cat "$SOURCE" | jcli key to-public)"
     SOURCE_ADDR="$(jcli address account --testing "$SOURCE_PK")"
-    SOURCE_COUNTER="$(jcli rest v0 account get "$SOURCE_ADDR" -h "$REST_URL" | grep '^counter:' | sed -e 's/counter: //' )"
+    SOURCE_COUNTER="$(jcli rest v0 account get "$SOURCE_ADDR" -h "$JORMUNGANDR_RESTAPI_URL" | grep '^counter:' | sed -e 's/counter: //' )"
 
     jcli transaction new --staging "$STAGING_FILE"
     jcli transaction add-account "$SOURCE_ADDR" "$AMOUNT_WITH_FEES" --staging "$STAGING_FILE"
     jcli transaction add-output "$DEST" "$AMOUNT" --staging "$STAGING_FILE"
     jcli transaction finalize --staging "$STAGING_FILE"
-    TRANSACTION_ID=$(jcli transaction id --staging "$STAGING_FILE")
+    TRANSACTION_ID=$(jcli transaction data-for-witness --staging "$STAGING_FILE")
     WITNESS_SECRET_FILE="''${TMPDIR}/witness.secret.$$"
     WITNESS_OUTPUT_FILE="''${TMPDIR}/witness.out.$$"
 
-    printf "%s" "$SOURCE" > "$WITNESS_SECRET_FILE"
+    printf "%s" "$(cat $SOURCE)" > "$WITNESS_SECRET_FILE"
 
     echo "The transaction will be posted to the blockchain with genesis hash:"
     echo "  $BLOCK0_HASH"
@@ -345,7 +345,7 @@ in let
     # Finalize the transaction and send it
     echo -ne "The id for this funds transfer transaction is:\n  "
     jcli transaction seal --staging "$STAGING_FILE"
-    jcli transaction to-message --staging "$STAGING_FILE" | jcli rest v0 message post -h "$REST_URL"
+    jcli transaction to-message --staging "$STAGING_FILE" | jcli rest v0 message post -h "$JORMUNGANDR_RESTAPI_URL"
 
     rm "$STAGING_FILE"
   '';
@@ -356,18 +356,18 @@ in let
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
-    REST_URL="${httpHost}"
+    JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'${httpHost}'}"
     while getopts 's:c:r:h' c
     do
       case "$c" in
         s) SOURCE="$OPTARG" ;;
         c) CERT="$OPTARG" ;;
-        r) REST_URL="$OPTARG" ;;
+        r) JORMUNGANDR_RESTAPI_URL="$OPTARG" ;;
         *)
            echo "This command sends a certificate to the blockchain."
            echo "usage: $0 -s -c -r [-h]"
            echo ""
-           echo "  -s Wallet to send funds from"
+           echo "  -s Path to key of wallet to send funds from"
            echo "  -c Path to the signed certificate file to send"
            echo "  -r REST endpoint to connect to (defaults to ${httpHost})"
            exit 0
@@ -383,7 +383,7 @@ in let
       exit 1
     fi
 
-    settings=$(curl -s "''${REST_URL}/v0/settings")
+    settings=$(curl -s "''${JORMUNGANDR_RESTAPI_URL}/v0/settings")
     FEE_CONSTANT=$(echo "$settings" | jq -r .fees.constant)
     FEE_COEFFICIENT=$(echo "$settings" | jq -r .fees.coefficient)
     FEE_CERTIFICATE=$(echo "$settings" | jq -r .fees.certificate)
@@ -391,19 +391,19 @@ in let
     AMOUNT_WITH_FEES=$((FEE_CONSTANT + FEE_COEFFICIENT + FEE_CERTIFICATE))
     TMPDIR="$(mktemp -d)"
     STAGING_FILE="''${TMPDIR}/staging.$$.transaction"
-    SOURCE_PK=$(echo "$SOURCE" | jcli key to-public)
+    SOURCE_PK=$(echo "$(cat $SOURCE)" | jcli key to-public)
     SOURCE_ADDR=$(jcli address account --testing "$SOURCE_PK")
-    SOURCE_COUNTER=$(jcli rest v0 account get "$SOURCE_ADDR" -h "$REST_URL" | grep '^counter:' | sed -e 's/counter: //' )
+    SOURCE_COUNTER=$(jcli rest v0 account get "$SOURCE_ADDR" -h "$JORMUNGANDR_RESTAPI_URL" | grep '^counter:' | sed -e 's/counter: //' )
 
     jcli transaction new --staging "$STAGING_FILE"
     jcli transaction add-account "$SOURCE_ADDR" "$AMOUNT_WITH_FEES" --staging "$STAGING_FILE"
     jcli transaction add-certificate --staging "$STAGING_FILE" "$(cat "$CERT")"
     jcli transaction finalize --staging "$STAGING_FILE"
-    TRANSACTION_ID=$(jcli transaction id --staging "$STAGING_FILE")
+    TRANSACTION_ID=$(jcli transaction data-for-witness --staging "$STAGING_FILE")
     WITNESS_SECRET_FILE="''${TMPDIR}/witness.secret.$$"
     WITNESS_OUTPUT_FILE="''${TMPDIR}/witness.out.$$"
 
-    printf "%s" "$SOURCE" > "$WITNESS_SECRET_FILE"
+    printf "%s" "$(cat $SOURCE)" > "$WITNESS_SECRET_FILE"
 
     echo "The transaction will be posted to the blockchain with genesis hash:"
     echo "  $BLOCK0_HASH"
@@ -418,7 +418,8 @@ in let
     # Finalize the transaction and send it
     echo -ne "The id for this certificate send transaction is:\n  "
     jcli transaction seal --staging "$STAGING_FILE"
-    jcli transaction to-message --staging "$STAGING_FILE" | jcli rest v0 message post -h "$REST_URL"
+    lcli transaction auth --staging "$STAGING_FILE" -k "$SOURCE"
+    jcli transaction to-message --staging "$STAGING_FILE" | jcli rest v0 message post -h "$JORMUNGANDR_RESTAPI_URL"
 
     rm "$STAGING_FILE"
   '';
@@ -429,13 +430,13 @@ in let
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
-    REST_URL="${httpHost}"
+    JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'${httpHost}'}"
 
     while getopts 't:r:h' c
     do
       case "$c" in
         t) TXID="$OPTARG" ;;
-        r) REST_URL="$OPTARG" ;;
+        r) JORMUNGANDR_RESTAPI_URL="$OPTARG" ;;
         *)
            echo "This command checks status for a specified transaction id."
            echo "usage: $0 -t -r [-h]"
@@ -451,7 +452,7 @@ in let
       exit 1
     fi
 
-    jcli rest v0 message logs -h "$REST_URL" --output-format json | jq ".[] | select (.fragment_id == \"$TXID\")"
+    jcli rest v0 message logs -h "$JORMUNGANDR_RESTAPI_URL" --output-format json | jq ".[] | select (.fragment_id == \"$TXID\")"
     '';
 
   janalyze = let
@@ -489,7 +490,7 @@ in let
       shellHook = oldAttrs.shellHook + ''
         echo "To start jormungandr run: \"run-jormungandr\"."
         echo
-        export JORMUNGANDR_RESTAPI_URL=${httpHost}
+        export JORMUNGANDR_RESTAPI_URL="${httpHost}"
         echo "Using REST API host of ''${JORMUNGANDR_RESTAPI_URL}"
         echo
         echo "To connect using CLI REST:"
