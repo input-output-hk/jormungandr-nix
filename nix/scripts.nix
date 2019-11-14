@@ -263,8 +263,8 @@ in let
     mkdir -p ${rootDir}
     SOURCE_PK=$(jcli key to-public < "$SOURCE")
     jcli certificate new stake-delegation \
-      "$POOL" \
-      "$SOURCE_PK" > ${rootDir}/stake_delegation.cert
+      "$SOURCE_PK" \
+      "$POOL" > ${rootDir}/stake_delegation.cert
     jcli certificate sign -k "$SOURCE" < ${rootDir}/stake_delegation.cert > ${rootDir}/stake_delegation.signcert
 
     echo "Your delegation certificate is at ${rootDir}/stake_delegation.signcert."
