@@ -1,4 +1,4 @@
-﻿# jtools version 0.1.0 (powershell port)
+# jtools version 0.1.1 (powershell port)
 #
 # based on scripts from @Gufmar, @NicolasDP, @disassembler
 
@@ -27,12 +27,15 @@ $JQ="jq.exe"
 
 ###################################################################
 
-Write-Output "`njtools Version:        0.1.0"
-Write-Output "jormungandr Version:   $(& $NODE --version | ForEach-Object { $_ -replace `"jormungandr `", `"`" })"
-Write-Output "jcli Version:          $(& $CLI --version | ForEach-Object { $_ -replace `"jcli `", `"`" })"
-Write-Output "PS Version:            $($PSVersionTable.PSVersion)"
-Write-Output "Base Folder:           $BASE_FOLDER"
-Write-Output "Node Rest Url:         $NODE_REST_URL`n"
+function version() {
+  Write-Output "`njtools Version:        0.1.1"
+  Write-Output "jormungandr Version:   $(& $NODE --version | ForEach-Object { $_ -replace `"jormungandr `", `"`" })"
+  Write-Output "jcli Version:          $(& $CLI --version | ForEach-Object { $_ -replace `"jcli `", `"`" })"
+  Write-Output "PS Version:            $($PSVersionTable.PSVersion)"
+  Write-Output "Base Folder:           $BASE_FOLDER"
+  Write-Output "Node Rest Url:         $NODE_REST_URL`n"
+  Exit 1
+}
 
 
 function usage() {
@@ -56,6 +59,8 @@ function usage() {
   Write-Output "    jtools check tx   <TX_ID>"
   Write-Output "    jtools check node stats"
   Write-Output "    jtools check node settings"
+  Write-Output ""
+  Write-Output "    jtools version"
   Write-Output ""
   Write-Output "    jtools update"
   Write-Output ""
@@ -696,6 +701,7 @@ function main() {
     "pool"   { pool;   Break }
     "stake"  { stake;  Break }
     "update" { update;  Break }
+	"version" {version; Break }
     Default {
       Write-Output "`nNo such operation: $OPERATION`n"
       usage
@@ -706,4 +712,3 @@ function main() {
 
 main
 Exit
-
