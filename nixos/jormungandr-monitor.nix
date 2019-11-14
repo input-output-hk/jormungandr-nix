@@ -34,6 +34,16 @@ in {
         description = "Extract addresses to monitor from this file if set";
       };
 
+      genesisAddrSelector = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = ''
+          A specific single address to monitor from the genesis yaml list (1-indexed).
+          If the genesisYaml option is utilized and this genesisAddrSelector is not
+          provided, the full list of addresses will be monitored.
+        '';
+      };
+
       port = mkOption {
         type = types.port;
         default = 8000;
@@ -52,7 +62,11 @@ in {
         PORT = toString cfg.port;
         JORMUNGANDR_API = cfg.jormungandrApi;
         MONITOR_ADDRESSES = concatStringsSep " "
-          ((optionals (cfg.genesisYaml != null) genesisAddresses)
+          ((optionals (cfg.genesisYaml != null) (
+            if (cfg.genesisAddrSelector != null) then
+              [ (__elemAt genesisAddresses (cfg.genesisAddrSelector - 1)) ]
+            else
+              genesisAddresses))
             ++ cfg.monitorAddresses);
       };
 
