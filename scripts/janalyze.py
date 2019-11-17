@@ -66,7 +66,7 @@ def aggregateall():
         lowestEpoch = block['epoch']
 	
     for pool, data in poolTotal.items():
-        poolTotal[pool]['blockPercent'] = data['blocks'] / blockTotal * 100
+        poolTotal[pool]['percent'] = data['blocks'] / blockTotal * 100
 	
     if args.json == True:
         print(json.dumps(poolTotal, sort_keys=True))
@@ -79,7 +79,7 @@ def aggregateall():
         headers = [f'Pool (Node ID)', "Blocks (#)", "Block Percent (%)"]
         table = []
         for pool, data in poolTotal.items():
-            record = [ pool, data['blocks'], poolTotal[pool]['blockPercent'] ]
+            record = [ pool, data['blocks'], poolTotal[pool]['percent'] ]
             table.append(record)
         print(f'{tabulate(sorted(table, key=lambda x: x[0]), headers, tablefmt="psql")}')
         print(f'TotalBlocks: {blockTotal} \n')
