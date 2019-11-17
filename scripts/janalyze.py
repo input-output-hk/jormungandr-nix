@@ -64,19 +64,25 @@ def aggregateall():
         block = parse_block(get_block(block['parent']))
         blockTotal += 1
         lowestEpoch = block['epoch']
-
-    if args.aggregateall > 0:
-        print(f'\nJormungandr Block Aggregate for epochs {lowestEpoch + 1} -  {currentEpoch}:\n')
-    else:
-        print('\nJormungandr Overall Block Aggregate:\n')
-
-    headers = [f'Pool (Node ID)', "Blocks (#)", "Block Percent (%)"]
-    table = []
+	
     for pool, data in poolTotal.items():
-       record = [ pool, data['blocks'], data['blocks'] / blockTotal * 100 ]
-       table.append(record)
-    print(f'{tabulate(sorted(table, key=lambda x: x[0]), headers, tablefmt="psql")}')
-    print(f'TotalBlocks: {blockTotal} \n')
+        poolTotal[pool]['blockPercent'] = data['blocks'] / blockTotal * 100
+	
+    if args.json == True:
+        print(json.dumps(poolTotal, sort_keys=True))
+    else:
+        if args.aggregateall > 0:
+            print(f'\nJormungandr Block Aggregate for epochs {lowestEpoch + 1} -  {currentEpoch}:\n')
+        else:
+            print('\nJormungandr Overall Block Aggregate:\n')
+
+        headers = [f'Pool (Node ID)', "Blocks (#)", "Block Percent (%)"]
+        table = []
+        for pool, data in poolTotal.items():
+            record = [ pool, data['blocks'], poolTotal[pool]['blockPercent'] ]
+            table.append(record)
+        print(f'{tabulate(sorted(table, key=lambda x: x[0]), headers, tablefmt="psql")}')
+        print(f'TotalBlocks: {blockTotal} \n')
 
 def aggregate(silent=False):
 
