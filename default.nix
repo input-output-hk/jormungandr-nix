@@ -17,7 +17,10 @@ let
   genesisHash' = genesisHash;
   trustedPeers' = trustedPeers;
 in let
-  customArgs = args // customConfig;
+  defaultArgs = {
+    inherit package environment jcli color staking sendLogs genesisHash trustedPeers topicsOfInterest;
+  };
+  customArgs = defaultArgs // args // customConfig;
   genesisHash = if (genesisHash' == null) then commonLib.environments.${customArgs.environment}.genesisHash else genesisHash';
   trustedPeers = if (trustedPeers' == null) then commonLib.environments.${customArgs.environment}.trustedPeers else trustedPeers';
   niv = (import sources.niv {}).niv;
@@ -27,6 +30,6 @@ in let
   } // customArgs);
   explorerFrontend = (import ./explorer-frontend).jormungandr-explorer;
 in {
-  inherit niv sources explorerFrontend scripts genesisHash customConfig customArgs;
+  inherit niv sources explorerFrontend scripts genesisHash;
   inherit (scripts) shells;
 }
