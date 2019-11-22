@@ -27,5 +27,6 @@ let
       jobs.jormungandrConfigs.beta
       jobs.jormungandrConfigs.nightly
       jobs.jormungandrConfigs.itn_balance_check
+      jobs.jormungandrConfigs.qa
     ]));
 in jobs

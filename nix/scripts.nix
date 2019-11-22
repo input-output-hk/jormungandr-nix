@@ -478,6 +478,7 @@ in let
         checkTxStatus
         runJormungandr
         janalyze
+        niv
       ];
       shellHook = ''
         echo "Jormungandr Testnet" '' + (if color then ''\
