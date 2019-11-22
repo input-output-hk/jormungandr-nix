@@ -5,3 +5,4 @@ squashfs-root
 result*
 build
 state-*
+tests/divergence/static/
