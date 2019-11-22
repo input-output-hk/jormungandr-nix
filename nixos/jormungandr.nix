@@ -247,18 +247,22 @@ in {
       after         = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       script = let
+        log = {
+          level = cfg.logger.level;
+          format = cfg.logger.format;
+          output = (if (cfg.logger.output == "gelf") then {
+            gelf = {
+              backend = cfg.logger.backend;
+              log_id = cfg.logger.logs-id;
+            };
+          } else cfg.logger.output);
+        };
+
         configJson = builtins.toFile "config.yaml" (builtins.toJSON ({
           storage = "/var/lib/" + cfg.stateDir;
-          log = {
-            level = cfg.logger.level;
-            format = cfg.logger.format;
-            output = (if (cfg.logger.output == "gelf") then {
-              gelf = {
-                backend = cfg.logger.backend;
-                log_id = cfg.logger.logs-id;
-              };
-            } else cfg.logger.output);
-          };
+          log = if (builtins.compareVersions "0.7.1" cfg.package.version >= 0)
+                then [log]
+                else log;
           rest = {
             listen = cfg.rest.listenAddress;
           } // optionalAttrs (cfg.rest.cors.allowedOrigins != []) {
