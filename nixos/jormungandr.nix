@@ -260,7 +260,7 @@ in {
 
         configJson = builtins.toFile "config.yaml" (builtins.toJSON ({
           storage = "/var/lib/" + cfg.stateDir;
-          log = if (builtins.compareVersions "0.7.1" cfg.package.version >= 0)
+          log = if (builtins.compareVersions cfg.package.version "0.7.1" >= 0)
                 then [log]
                 else log;
           rest = {
