@@ -287,7 +287,7 @@ in {
         }));
         secretsArgs = concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
-        ${optionalString cfg.withBackTraces "RUST_BACKTRACE=full"} ${optionalString cfg.withValgrind "${pkgs.valgrind}/bin/valgrind"} ${cfg.package}/bin/jormungandr \
+        ${optionalString cfg.withBackTraces "RUST_BACKTRACE=full"} exec ${optionalString cfg.withValgrind "${pkgs.valgrind}/bin/valgrind"} ${cfg.package}/bin/jormungandr \
         ${optionalString (cfg.block0 != null) "--genesis-block ${cfg.block0}"} \
         ${optionalString (cfg.genesisBlockHash != null) "--genesis-block-hash ${cfg.genesisBlockHash}"} \
         --config ${configJson}${secretsArgs}
