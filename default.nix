@@ -1,9 +1,8 @@
 let
   commonLib = import ./lib.nix;
   in with commonLib.lib; with import ./lib.nix;
-{ package ? pkgs.jormungandr
-, environment ? "beta"
-, jcli ? pkgs.jormungandr-cli
+{ environment ? "beta"
+, versionOverride ? null
 , color ? true
 , staking ? false
 , sendLogs ? false
@@ -18,18 +17,19 @@ let
   trustedPeers' = trustedPeers;
 in let
   defaultArgs = {
-    inherit package environment jcli color staking sendLogs genesisHash trustedPeers topicsOfInterest;
+    inherit environment color staking sendLogs genesisHash trustedPeers topicsOfInterest versionOverride;
+    packages = if (customArgs.versionOverride == null) then commonLib.environments.${customArgs.environment}.packages else commonLib.packages.${customArgs.versionOverride};
   };
   customArgs = defaultArgs // args // customConfig;
   genesisHash = if (genesisHash' == null) then commonLib.environments.${customArgs.environment}.genesisHash else genesisHash';
   trustedPeers = if (trustedPeers' == null) then commonLib.environments.${customArgs.environment}.trustedPeers else trustedPeers';
   niv = (import sources.niv {}).niv;
   scripts = pkgs.callPackage ./nix/scripts.nix ({
-    inherit package jcli color staking sendLogs genesisHash trustedPeers
+    inherit packages color staking sendLogs genesisHash trustedPeers
       topicsOfInterest niv;
   } // customArgs);
   explorerFrontend = (import ./explorer-frontend).jormungandr-explorer;
 in {
-  inherit niv sources explorerFrontend scripts genesisHash;
+  inherit niv sources explorerFrontend scripts;
   inherit (scripts) shells;
 }

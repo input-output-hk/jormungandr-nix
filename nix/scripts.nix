@@ -1,5 +1,4 @@
-{ package
-, jcli
+{ packages
 , genesisHash
 , trustedPeers
 , color
@@ -40,7 +39,7 @@ in let
   } // logConfig';
   configAttrs = {
     inherit storage;
-    log = {
+    log = [{
       level = logConfig.level;
       format = logConfig.format;
       output = (if (logConfig.output == "gelf") then {
@@ -49,7 +48,7 @@ in let
           log_id = logConfig.id;
         };
       } else logConfig.output);
-    };
+    }];
     rest = {
       listen = restListen;
     };
@@ -81,7 +80,7 @@ in let
 
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli coreutils gnused uuidgen jq curl ])}
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli coreutils gnused uuidgen jq curl ])}
 
     echo "basedir: ${rootDir}"
     mkdir -p ${rootDir}
@@ -94,7 +93,7 @@ in let
 
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli coreutils gnused uuidgen jq curl ])}
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli coreutils gnused uuidgen jq curl ])}
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
@@ -161,79 +160,99 @@ in let
   createStakePool = pkgs.writeShellScriptBin "create-stake-pool" ''
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils ])}
-    STAKEPOOL_NAME="stake_pool"
-    FORCE=0
-    while getopts 'fn:h' c
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils ])}
+    STAKEPOOL_NAME="pool"
+    TICKER="POOL"
+    STAKEPOOL_DESC="An unidentified stake pool"
+    TAX_FIXED=0
+    TAX_RATIO="0/1"
+    TAX_LIMIT=1
+    URL="https://www.example.com"
+    OVERWRITE=0
+    while getopts 'of:n:t:r:l:u:h' c
     do
       case "$c" in
-        f) FORCE=1 ;;
+        o) OVERWRITE=1 ;;
         n) STAKEPOOL_NAME="$OPTARG";;
+        t) TICKER="$OPTARG";;
+        f) TAX_FIXED="$OPTARG";;
+        r) TAX_RATIO="$OPTARG";;
+        l) TAX_LIMIT="$OPTARG";;
+        u) URL="$OPTARG";;
         *)
            echo "usage: $0 [-f] [-n <STAKEPOOL_NAME>"
            echo ""
-           echo "  -f HERE BE DRAGONS!!! FORCE OVERWRITE EXISTING STAKE POOL. FUNDS MAY BE LOST!!!"
-           echo "  -n Name of stake pool to prefix (defaults to stake_pool)"
+           echo "  -o HERE BE DRAGONS!!! FORCE OVERWRITE EXISTING STAKE POOL. FUNDS MAY BE LOST!!!"
+           echo "  -n Name of stake pool (defaults to pool)"
+           echo "  -t Ticker of stake pool (defaults to POOL, must be 5 alphanumeric chars or less)"
+           echo "  -f Fixed Tax for pool (default 0)"
+           echo "  -r Tax Rate for pool (default 0/1)"
+           echo "  -l Tax Limit for pool (default 1)"
+           echo "  -u Stake Pool URL (default https://www.example.com)"
            exit 0
            ;;
       esac
     done
 
-    if [[ "$FORCE" -eq 0 && -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
+    if [[ "$OVERWRITE" -eq 0 && -f "${rootDir}/''${TICKER}-secret.yaml" ]]
     then
-      echo "''${STAKEPOOL_NAME}-secret.yaml exists!"
+      echo "''${TICKER}-secret.yaml exists!"
       echo "Please either specify [-f] flag to overwrite existing stake pool -f [-n <POOLNAME>]."
       exit 1
-    elif [[ "$FORCE" -eq 0 && -f "${rootDir}/secret.yaml" ]]
+    elif [[ "$OVERWRITE" -eq 0 && -f "${rootDir}/secret.yaml" ]]
     then
       echo "secret.yaml exists, but you've requested a different pool name."
       echo "Your secret.yaml will be updated to point to newly created pool"
       rm -f "${rootDir}/secret.yaml"
-    elif [[ "$FORCE" -eq 0 && -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml" ]]
+    elif [[ "$OVERWRITE" -eq 0 && -f "${rootDir}/''${TICKER}-secret.yaml" ]]
     then
       echo "WARNING! You've specified [-f] flag. Your secrets for previous pool WILL BE REMOVED!"
-      rm -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml"
+      rm -f "${rootDir}/''${TICKER}-secret.yaml"
       rm -f "${rootDir}/secret.yaml"
-    elif [[ "$FORCE" -eq 1 ]]
+    elif [[ "$OVERWRITE" -eq 1 ]]
     then
-      rm -f "${rootDir}/''${STAKEPOOL_NAME}-secret.yaml"
+      rm -f "${rootDir}/''${TICKER}-secret.yaml"
       rm -f "${rootDir}/secret.yaml"
     fi
 
     mkdir -p ${rootDir}
     cd ${rootDir}
-    jcli key generate --type=Ed25519 > ''${STAKEPOOL_NAME}_owner_wallet.prv
-    jcli key to-public < ''${STAKEPOOL_NAME}_owner_wallet.prv > ''${STAKEPOOL_NAME}_owner_wallet.pub
-    jcli address account "$(cat ''${STAKEPOOL_NAME}_owner_wallet.pub)" --testing > ''${STAKEPOOL_NAME}_owner_wallet.address
+    jcli key generate --type=Ed25519 > ''${TICKER}_owner_wallet.prv
+    jcli key to-public < ''${TICKER}_owner_wallet.prv > ''${TICKER}_owner_wallet.pub
+    jcli address account "$(cat ''${TICKER}_owner_wallet.pub)" --testing > ''${TICKER}_owner_wallet.address
 
-    jcli key generate --type=SumEd25519_12 > ''${STAKEPOOL_NAME}_kes.prv
-    jcli key to-public < ''${STAKEPOOL_NAME}_kes.prv > ''${STAKEPOOL_NAME}_kes.pub
-    jcli key generate --type=Curve25519_2HashDH > ''${STAKEPOOL_NAME}_vrf.prv
-    jcli key to-public < ''${STAKEPOOL_NAME}_vrf.prv > ''${STAKEPOOL_NAME}_vrf.pub
+    jcli key generate --type=SumEd25519_12 > ''${TICKER}_kes.prv
+    jcli key to-public < ''${TICKER}_kes.prv > ''${TICKER}_kes.pub
+    jcli key generate --type=Curve25519_2HashDH > ''${TICKER}_vrf.prv
+    jcli key to-public < ''${TICKER}_vrf.prv > ''${TICKER}_vrf.pub
 
     jcli certificate new stake-pool-registration \
-    --kes-key "$(cat ''${STAKEPOOL_NAME}_kes.pub)" \
-    --vrf-key "$(cat ''${STAKEPOOL_NAME}_vrf.pub)" \
-    --owner "$(cat ''${STAKEPOOL_NAME}_owner_wallet.pub)" \
-    --serial 1010101010 \
+    --kes-key "$(cat ''${TICKER}_kes.pub)" \
+    --vrf-key "$(cat ''${TICKER}_vrf.pub)" \
+    --owner "$(cat ''${TICKER}_owner_wallet.pub)" \
     --management-threshold 1 \
-    --start-validity 0 > ''${STAKEPOOL_NAME}.cert
-    jcli certificate sign -k ''${STAKEPOOL_NAME}_owner_wallet.prv < ''${STAKEPOOL_NAME}.cert > ''${STAKEPOOL_NAME}.signcert
-    jcli certificate get-stake-pool-id < ''${STAKEPOOL_NAME}.signcert > ''${STAKEPOOL_NAME}.id
-    NODEID="$(cat ''${STAKEPOOL_NAME}.id)"
-    VRFKEY="$(cat ''${STAKEPOOL_NAME}_vrf.prv)"
-    KESKEY="$(cat ''${STAKEPOOL_NAME}_kes.prv)"
-    jq -n ".genesis.node_id = \"$NODEID\" | .genesis.vrf_key = \"$VRFKEY\" | .genesis.sig_key = \"$KESKEY\"" > ''${STAKEPOOL_NAME}-secret.yaml
-    ln -s ''${STAKEPOOL_NAME}-secret.yaml secret.yaml
-
-
+    --tax-limit ''${TAX_LIMIT} \
+    --tax-ratio ''${TAX_RATIO} \
+    --tax-fixed ''${TAX_FIXED} \
+    --start-validity 0 > ''${TICKER}.cert
+    jcli certificate sign -k ''${TICKER}_owner_wallet.prv < ''${TICKER}.cert > ''${TICKER}.signcert
+    jcli certificate get-stake-pool-id < ''${TICKER}.signcert > ''${TICKER}.id
+    NODEID="$(cat ''${TICKER}.id)"
+    VRFKEY="$(cat ''${TICKER}_vrf.prv)"
+    KESKEY="$(cat ''${TICKER}_kes.prv)"
+    OWNER_WALLET_PUB_STR="$(cat ''${TICKER}_owner_wallet.pub)"
+    jq -n ".genesis.node_id = \"$NODEID\" | .genesis.vrf_key = \"$VRFKEY\" | .genesis.sig_key = \"$KESKEY\"" > ''${TICKER}-secret.yaml
+    ln -s ''${TICKER}-secret.yaml secret.yaml
+    jq -n ".owner = \"''${OWNER_WALLET_PUB_STR}\" | .name = \"''${STAKEPOOL_NAME}\" | .ticker = \"''${TICKER}\" | .homepage = \"''${URL}\" | .pledge_address = \"$(cat ''${TICKER}_owner_wallet.address)\"" > "''${OWNER_WALLET_PUB_STR}.json"
+    jcli key sign --secret-key "''${TICKER}_owner_wallet.prv" --output "''${OWNER_WALLET_PUB_STR}.sig" "''${OWNER_WALLET_PUB_STR}.json"
+    echo "Upload ${rootDir}/''${OWNER_WALLET_PUB_STR}.json and ${rootDir}/''${OWNER_WALLET_PUB_STR}.sig to the stake pool registry"
     echo "Stake pool secrets created and stored in ${rootDir}/secret.yaml"
     echo "The certificate ${rootDir}/stake_pool.signcert needs to be submitted to network using send-certificate"
   '';
   delegateStake = pkgs.writeShellScriptBin "delegate-stake" ''
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils curl gnused gnugrep ])}
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
@@ -275,7 +294,7 @@ in let
   sendFunds = pkgs.writeShellScriptBin "send-funds" ''
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils curl gnused gnugrep ])}
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
@@ -353,7 +372,7 @@ in let
   sendCertificate = pkgs.writeShellScriptBin "send-certificate" ''
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils curl gnused gnugrep ])}
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
@@ -427,7 +446,7 @@ in let
   checkTxStatus = pkgs.writeShellScriptBin "check-tx-status" ''
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath (with pkgs; [ package jcli jq coreutils curl gnused gnugrep ])}
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils curl gnused gnugrep ])}
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
@@ -468,8 +487,8 @@ in let
     bootstrap = pkgs.callPackage ./shells/bootstrap.nix args;
     base = pkgs.stdenv.mkDerivation {
       name = "jormungandr-testnet";
-      buildInputs = [
-        package
+      buildInputs = with packages; [
+        jormungandr
         jcli
         createStakePool
         sendFunds
@@ -485,11 +504,13 @@ in let
         | ${pkgs.figlet}/bin/figlet -f banner -c \
         | ${pkgs.lolcat}/bin/lolcat'' else "") + ''
 
-        source ${jcli}/scripts/jcli-helpers
+        source ${packages.jcli}/scripts/jcli-helpers
       '';
     };
     testnet = base.overrideAttrs (oldAttrs: {
       shellHook = oldAttrs.shellHook + ''
+        echo "* CLI version: ''${GREEN}${packages.jcli.version}''${WHITE}"
+        echo "* NODE version: ''${GREEN}${packages.jormungandr.version}''${WHITE}"
         echo "To start jormungandr run: \"run-jormungandr\"."
         echo
         export JORMUNGANDR_RESTAPI_URL="${httpHost}"
@@ -511,6 +532,7 @@ in let
         echo " - jcli-stake-delegate-new"
         echo " - jcli-generate-account"
         echo " - jcli-generate-account-export-suffix"
+
         echo "You are currently configured for environment ${environment}"
       '';
     });
@@ -520,5 +542,5 @@ in let
   in { inherit testnet devops bootstrap; };
 in {
   inherit shells runJormungandr runJormungandrSnappy createStakePool sendFunds
-          sendCertificate delegateStake janalyze checkTxStatus;
+          sendCertificate delegateStake janalyze checkTxStatus packages;
 }
