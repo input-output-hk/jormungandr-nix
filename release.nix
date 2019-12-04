@@ -19,14 +19,9 @@ with (import commonLib.iohkNix.release-lib {
 with pkgs.lib;
 
 let
-  jormungandrConfigs = commonLib.forEnvironments commonLib.mkConfigHydra;
 
+  # TODO: add CI jobs here for jormungandr-nix
   jobs = {
-    inherit jormungandrConfigs;
   } // (mkRequiredJob ([
-      jobs.jormungandrConfigs.beta
-      jobs.jormungandrConfigs.nightly
-      jobs.jormungandrConfigs.itn_balance_check
-      jobs.jormungandrConfigs.qa
     ]));
 in jobs

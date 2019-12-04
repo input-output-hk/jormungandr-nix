@@ -1,7 +1,6 @@
 with import ../../lib.nix; with lib;
 { dockerEnv ? false
-, package ? pkgs.jormungandr
-, jcli ? pkgs.jormungandr-cli
+, packages
 , block0_consensus ? "genesis_praos"
 , color ? true
 , faucetAmount ? 1000000000
@@ -104,8 +103,8 @@ let
 
     echo "##############################################################################"
     echo ""
-    echo "* CLI version: ''${GREEN}${jcli.version}''${WHITE}"
-    echo "* NODE version: ''${GREEN}${package.version}''${WHITE}"
+    echo "* CLI version: ''${GREEN}${packages.jcli.version}''${WHITE}"
+    echo "* NODE version: ''${GREEN}${packages.jormungandr.version}''${WHITE}"
     echo ""
     echo "########################################################"
     echo ""
@@ -132,7 +131,8 @@ ${lib.optionalString (genesis-block-hash == null)''
   '';
 
   gen-config-script-fragment-non-nixos = pkgs.callPackage ../generate-config.nix (args // {
-    inherit genesis-block-hash genesisJson configJson configJsonGelf genesisSecretJson bftSecretJson rootDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient jcli storage;
+    inherit genesis-block-hash genesisJson configJson configJsonGelf genesisSecretJson bftSecretJson rootDir numberOfStakePools numberOfLeaders block0_consensus numberOfFaucets httpHost color linear_fees_constant linear_fees_certificate linear_fees_coefficient storage;
+    inherit (packages) jcli;
   });
 
 
@@ -147,7 +147,7 @@ ${lib.optionalString (genesis-block-hash == null)''
 
     set -euo pipefail
 
-    export PATH=${lib.makeBinPath [ jcli package remarshal zip uuidgen ]}:$PATH
+    export PATH=${lib.makeBinPath [ packages.jcli packages.jormungandr remarshal zip uuidgen ]}:$PATH
     ${gen-config-script-fragment-non-nixos}
 
 
@@ -169,7 +169,7 @@ ${lib.optionalString (genesis-block-hash == null)''
     echo ""
     ''
   else "") + ''
-    ${package}/bin/${run-command {}}
+    ${packages.jormungandr}/bin/${run-command {}}
   '');
 
   jormungandr-bootstrap = with pkgs; writeScriptBin "bootstrap" (''
@@ -177,7 +177,7 @@ ${lib.optionalString (genesis-block-hash == null)''
 
     set -euo pipefail
 
-    export PATH=${makeBinPath [ package jcli coreutils gnused uuidgen jq ]}
+    export PATH=${makeBinPath [ packages.jormungandr packages.jcli coreutils gnused uuidgen jq ]}
 
     if [[ "''${GELF:-false}" = "true" ]]; then
       OUTPUT="gelf"
@@ -231,15 +231,15 @@ ${lib.optionalString (genesis-block-hash == null)''
 
   send-transaction = pkgs.writeScriptBin "send-transaction" (
     builtins.replaceStrings ["http://127.0.0.1:8443/api"] [httpHost]
-    (builtins.readFile (jcli + "/scripts/send-transaction"))
+    (builtins.readFile (packages.jcli + "/scripts/send-transaction"))
   );
 
   shell = pkgs.stdenv.mkDerivation {
     name = "jormungandr-demo";
 
     buildInputs = with pkgs; [
-      package
-      jcli
+      packages.jormungandr
+      packages.jcli
       gen-config-script
       run-jormungandr-script
       jormungandr-bootstrap
@@ -270,7 +270,7 @@ ${lib.optionalString (genesis-block-hash == null)''
       fi
 
       ${header}
-      source ${jcli}/scripts/jcli-helpers
+      source ${packages.jcli}/scripts/jcli-helpers
 
       echo "To start jormungandr run: \"run-jormungandr\" which expands to:"
       echo " ${run-command {}}"
