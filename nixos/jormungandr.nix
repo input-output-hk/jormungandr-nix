@@ -22,7 +22,7 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = (import ../lib.nix).pkgs.jormungandr;
+        default = (import ../lib.nix).packages.release.jormungandr;
         defaultText = "jormungandr";
         description = ''
           The jormungandr package that should be used.
@@ -31,7 +31,7 @@ in {
 
       jcliPackage = mkOption {
         type = types.package;
-        default = (import ../lib.nix).pkgs.jormungandr-cli;
+        default = (import ../lib.nix).packages.release.jcli;
         defaultText = "jormungandr-cli";
         description = ''
           The jormungandr-cli package that should be used.
