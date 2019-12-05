@@ -169,7 +169,7 @@ in let
     TAX_LIMIT=1
     URL="https://www.example.com"
     OVERWRITE=0
-    while getopts 'of:n:t:r:l:u:h' c
+    while getopts 'of:n:t:r:u:h' c
     do
       case "$c" in
         o) OVERWRITE=1 ;;
@@ -177,7 +177,6 @@ in let
         t) TICKER="$OPTARG";;
         f) TAX_FIXED="$OPTARG";;
         r) TAX_RATIO="$OPTARG";;
-        l) TAX_LIMIT="$OPTARG";;
         u) URL="$OPTARG";;
         *)
            echo "usage: $0 [-f] [-n <STAKEPOOL_NAME>"
@@ -187,7 +186,6 @@ in let
            echo "  -t Ticker of stake pool (defaults to POOL, must be 5 alphanumeric chars or less)"
            echo "  -f Fixed Tax for pool (default 0)"
            echo "  -r Tax Rate for pool (default 0/1)"
-           echo "  -l Tax Limit for pool (default 1)"
            echo "  -u Stake Pool URL (default https://www.example.com)"
            exit 0
            ;;
@@ -231,7 +229,6 @@ in let
     --vrf-key "$(cat ''${TICKER}_vrf.pub)" \
     --owner "$(cat ''${TICKER}_owner_wallet.pub)" \
     --management-threshold 1 \
-    --tax-limit ''${TAX_LIMIT} \
     --tax-ratio ''${TAX_RATIO} \
     --tax-fixed ''${TAX_FIXED} \
     --start-validity 0 > ''${TICKER}.cert
