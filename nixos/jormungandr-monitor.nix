@@ -3,7 +3,6 @@
 let
   cfg = config.services.jormungandr-monitor;
   cfgJormungandr = config.services.jormungandr;
-
   genesisAddresses = let
     inherit (builtins) fromJSON elemAt filter readFile;
     genesis = fromJSON (readFile cfg.genesisYaml);
@@ -21,6 +20,11 @@ in {
       monitorAddresses = mkOption {
         type = types.listOf types.str;
         default = [ ];
+      };
+
+      jcliPackage = mkOption {
+        type = types.package;
+        default = (import ../lib.nix).packages.release.jcli;
       };
 
       jormungandrApi = mkOption {
@@ -74,7 +78,7 @@ in {
         User = "jormungandr-monitor";
         DynamicUser = true;
         StartLimitBurst = 50;
-        ExecStart = pkgs.callPackage ./jormungandr-monitor { };
+        ExecStart = pkgs.callPackage ./jormungandr-monitor { jormungandr-cli = cfg.jcliPackage; };
         Restart = "always";
         RestartSec = "15s";
       };
