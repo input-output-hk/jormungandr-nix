@@ -132,6 +132,31 @@ in {
         '';
       };
 
+      policyQuarantineDuration = mkOption {
+        type = types.str;
+        default = "30m";
+        description = ''
+          Time a node is quarantined before being allowed to reconnect
+        '';
+      };
+
+      maxUnreachableNodes = mkOption {
+        type = types.int;
+        default = 20;
+        description = ''
+          Number of nodes that aren't public we will allow our node to connect
+        '';
+      };
+
+      topologyForceResetInterval = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = ''
+          Force reset topology at an interval
+          WARNING: do not change unless you know what you're doing
+        '';
+      };
+
       publicId = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -277,6 +302,12 @@ in {
             topics_of_interest = cfg.topicsOfInterest;
             listen_address = cfg.listenAddress;
             max_connections = cfg.maxConnections;
+            policy = {
+              quarantine_duration = cfg.policyQuarantineDuration;
+            };
+            max_unreachable_nodes_to_connect_per_event = cfg.maxUnreachableNodes;
+          } // optionalAttrs (cfg.topologyForceResetInterval != null) {
+            topology_force_reset_interval = cfg.topologyForceResetInterval;
           };
         } // optionalAttrs cfg.enableExplorer {
           explorer = {
