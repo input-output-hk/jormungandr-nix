@@ -29,10 +29,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "32688ebbd427c82f87dc1e4fd8d56b0d37fae124",
-        "sha256": "0j30c8g948mxqhc4agbpc4b5ab2q06a9ivkmgq7zzlpb03dhgbba",
+        "rev": "c74a912722deefc7145963cd29fd01b399d60ec5",
+        "sha256": "1hzbgcl69bxl0w8phxvyacb9yalcm212qmn636qzdm42gwrghwgl",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/32688ebbd427c82f87dc1e4fd8d56b0d37fae124.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/c74a912722deefc7145963cd29fd01b399d60ec5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "js-chain-libs": {
@@ -41,10 +41,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "js-chain-libs",
-        "rev": "4074d086fd8eaafd8047f6835b83dea893909c83",
-        "sha256": "0vbxv1ldif28mnybffing1qf3s3lkh2cwgzrmr6ii2yl2zfpxcp0",
+        "rev": "74e015731e1e3d395a7409e6729da641ac965a2d",
+        "sha256": "1a5zw22jc1qywgiwifz7qaly8ygrcjik9g6sldms3bj1c1aqrm1x",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/js-chain-libs/archive/4074d086fd8eaafd8047f6835b83dea893909c83.tar.gz",
+        "url": "https://github.com/input-output-hk/js-chain-libs/archive/74e015731e1e3d395a7409e6729da641ac965a2d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
