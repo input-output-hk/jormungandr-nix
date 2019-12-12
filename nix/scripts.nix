@@ -166,28 +166,33 @@ in let
     STAKEPOOL_DESC="An unidentified stake pool"
     TAX_FIXED=0
     TAX_RATIO="0/1"
-    TAX_LIMIT=1
+    TAX_LIMIT=0
+    GENESIS=0
     URL="https://www.example.com"
     OVERWRITE=0
-    while getopts 'of:n:t:r:l:u:h' c
+    PRIVATE_KEY_PATH=0
+    while getopts 'ogf:n:k:t:r:l:u:h' c
     do
       case "$c" in
         o) OVERWRITE=1 ;;
+        g) GENESIS=1 ;;
         n) STAKEPOOL_NAME="$OPTARG";;
+        k) PRIVATE_KEY_PATH="$OPTARG";;
         t) TICKER="$OPTARG";;
         f) TAX_FIXED="$OPTARG";;
         r) TAX_RATIO="$OPTARG";;
         l) TAX_LIMIT="$OPTARG";;
         u) URL="$OPTARG";;
         *)
-           echo "usage: $0 [-f] [-n <STAKEPOOL_NAME>"
+           echo "usage: $0 [-o] [-g] [-n <STAKEPOOL_NAME>] [-t <TICKER_NAME>] [-f <TAX_FIXED>] [-r <TAX_RATE>] [-l <TAX_LIMIT] [-u <URL>]"
            echo ""
            echo "  -o HERE BE DRAGONS!!! FORCE OVERWRITE EXISTING STAKE POOL. FUNDS MAY BE LOST!!!"
+           echo "  -g Create registration certificate for genesis block"
            echo "  -n Name of stake pool (defaults to pool)"
            echo "  -t Ticker of stake pool (defaults to POOL, must be 5 alphanumeric chars or less)"
            echo "  -f Fixed Tax for pool (default 0)"
            echo "  -r Tax Rate for pool (default 0/1)"
-           echo "  -l Tax Limit for pool (default 1)"
+           echo "  -l Tax Limit for pool (default to not set)"
            echo "  -u Stake Pool URL (default https://www.example.com)"
            exit 0
            ;;
@@ -215,9 +220,21 @@ in let
       rm -f "${rootDir}/secret.yaml"
     fi
 
+    if [[ $TAX_LIMIT -eq 0 ]]
+    then
+      TAX_LIMIT_STRING=""
+    else
+      TAX_LIMIT_STRING="--tax-limit $TAX_LIMIT"
+    fi
+
     mkdir -p ${rootDir}
     cd ${rootDir}
-    jcli key generate --type=Ed25519 > ''${TICKER}_owner_wallet.prv
+    if [[ $PRIVATE_KEY_PATH -eq 0 ]]
+    then
+      jcli key generate --type=Ed25519 > ''${TICKER}_owner_wallet.prv
+    else
+      cp "$PRIVATE_KEY_PATH" ''${TICKER}_owner_wallet.prv
+    fi
     jcli key to-public < ''${TICKER}_owner_wallet.prv > ''${TICKER}_owner_wallet.pub
     jcli address account "$(cat ''${TICKER}_owner_wallet.pub)" --testing > ''${TICKER}_owner_wallet.address
 
@@ -231,12 +248,15 @@ in let
     --vrf-key "$(cat ''${TICKER}_vrf.pub)" \
     --owner "$(cat ''${TICKER}_owner_wallet.pub)" \
     --management-threshold 1 \
-    --tax-limit ''${TAX_LIMIT} \
+    ''${TAX_LIMIT_STRING} \
     --tax-ratio ''${TAX_RATIO} \
     --tax-fixed ''${TAX_FIXED} \
     --start-validity 0 > ''${TICKER}.cert
-    jcli certificate sign -k ''${TICKER}_owner_wallet.prv < ''${TICKER}.cert > ''${TICKER}.signcert
-    jcli certificate get-stake-pool-id < ''${TICKER}.signcert > ''${TICKER}.id
+    if [[ $GENESIS -eq 1 ]]
+    then
+      jcli certificate sign -k ''${TICKER}_owner_wallet.prv < ''${TICKER}.cert > ''${TICKER}.signcert
+    fi
+    jcli certificate get-stake-pool-id < ''${TICKER}.cert > ''${TICKER}.id
     NODEID="$(cat ''${TICKER}.id)"
     VRFKEY="$(cat ''${TICKER}_vrf.prv)"
     KESKEY="$(cat ''${TICKER}_kes.prv)"
@@ -247,26 +267,34 @@ in let
     jcli key sign --secret-key "''${TICKER}_owner_wallet.prv" --output "''${OWNER_WALLET_PUB_STR}.sig" "''${OWNER_WALLET_PUB_STR}.json"
     echo "Upload ${rootDir}/''${OWNER_WALLET_PUB_STR}.json and ${rootDir}/''${OWNER_WALLET_PUB_STR}.sig to the stake pool registry"
     echo "Stake pool secrets created and stored in ${rootDir}/secret.yaml"
-    echo "The certificate ${rootDir}/stake_pool.signcert needs to be submitted to network using send-certificate"
+    if [[ $GENESIS -eq 0 ]]
+    then
+      echo "The certificate ${rootDir}/''${TICKER}.cert needs to be submitted to network using send-pool-registration"
+    else
+      echo "The certificate ${rootDir}/''${TICKER}.signcert needs to be added to genesis.yaml"
+    fi
   '';
   delegateStake = pkgs.writeShellScriptBin "delegate-stake" ''
     set -euo pipefail
 
     export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils curl gnused gnugrep ])}
+    GENESIS=0
 
     [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
-    while getopts 's:p:h' c
+    while getopts 'gs:p:h' c
     do
       case "$c" in
+        g) GENESIS=1 ;;
         s) SOURCE="$OPTARG" ;;
         p) POOL="$OPTARG" ;;
         *)
            echo "This command creates a stake delegation certificate which can be sent to the blockchain."
            echo
-           echo "usage: $0 -s -p [-h]"
+           echo "usage: $0 -s -p [-h] [-g]"
            echo
            echo "  -s Path to the private key file of the wallet"
+           echo "  -g Generate delegation for genesis file"
            echo "  -p Stake Pool ID to delegate to"
            exit 0
            ;;
@@ -285,10 +313,18 @@ in let
     jcli certificate new stake-delegation \
       "$SOURCE_PK" \
       "$POOL" > ${rootDir}/stake_delegation.cert
-    jcli certificate sign -k "$SOURCE" < ${rootDir}/stake_delegation.cert > ${rootDir}/stake_delegation.signcert
+    if [[ $GENESIS -eq 1 ]]
+    then
+      jcli certificate sign -k "$SOURCE" < ${rootDir}/stake_delegation.cert > ${rootDir}/stake_delegation.signcert
+    fi
 
-    echo "Your delegation certificate is at ${rootDir}/stake_delegation.signcert."
-    echo "You need to create a transaction to send the certificate to the blockchain."
+    if [[ $GENESIS -eq 0 ]]
+    then
+      echo "Your delegation certificate is at ${rootDir}/stake_delegation.cert."
+      echo "You need to create a transaction to send the certificate to the blockchain."
+    else
+      echo "Your delegation certificate at ${rootDir}/stake_delegation.signcert needs to be added to genesis.yaml."
+    fi
 
   '';
   sendFunds = pkgs.writeShellScriptBin "send-funds" ''
@@ -369,7 +405,85 @@ in let
 
     rm "$STAGING_FILE"
   '';
-  sendCertificate = pkgs.writeShellScriptBin "send-certificate" ''
+  sendPoolRegistration = pkgs.writeShellScriptBin "send-pool-registration" ''
+    set -euo pipefail
+
+    export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils curl gnused gnugrep ])}
+
+    [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
+
+    JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'${httpHost}'}"
+    while getopts 's:c:r:h' c
+    do
+      case "$c" in
+        s) SOURCE="$OPTARG" ;;
+        c) CERT="$OPTARG" ;;
+        r) JORMUNGANDR_RESTAPI_URL="$OPTARG" ;;
+        *)
+           echo "This command sends a certificate to the blockchain."
+           echo "usage: $0 -s -c -r [-h]"
+           echo ""
+           echo "  -s Path to key of wallet to send funds from"
+           echo "  -c Path to the unsigned certificate file to send"
+           echo "  -r REST endpoint to connect to (defaults to ${httpHost})"
+           exit 0
+           ;;
+      esac
+    done
+    if [ -z "''${SOURCE:-}" ]; then
+      echo "-s is a required parameter"
+      exit 1
+    fi
+    if [ -z "''${CERT:-}" ]; then
+      echo "-c is a required parameter"
+      exit 1
+    fi
+
+    settings=$(curl -s "''${JORMUNGANDR_RESTAPI_URL}/v0/settings")
+    FEE_CONSTANT=$(echo "$settings" | jq -r .fees.constant)
+    FEE_COEFFICIENT=$(echo "$settings" | jq -r .fees.coefficient)
+    FEE_POOL_REGISTRATION=$(echo "$settings" | jq -r .fees.per_certificate_fees.certificate_pool_registration)
+    BLOCK0_HASH=$(echo "$settings" | jq -r .block0Hash)
+    AMOUNT_WITH_FEES=$((FEE_CONSTANT + FEE_COEFFICIENT + FEE_POOL_REGISTRATION))
+    TMPDIR="$(mktemp -d)"
+    STAGING_FILE="''${TMPDIR}/staging.$$.transaction"
+    SOURCE_PK=$(echo "$(cat $SOURCE)" | jcli key to-public)
+    SOURCE_ADDR=$(jcli address account --testing "$SOURCE_PK")
+    SOURCE_COUNTER=$(jcli rest v0 account get "$SOURCE_ADDR" -h "$JORMUNGANDR_RESTAPI_URL" | grep '^counter:' | sed -e 's/counter: //' )
+
+    jcli transaction new --staging "$STAGING_FILE"
+    jcli transaction add-account "$SOURCE_ADDR" "$AMOUNT_WITH_FEES" --staging "$STAGING_FILE"
+    jcli transaction add-certificate --staging "$STAGING_FILE" "$(cat "$CERT")"
+    jcli transaction finalize \
+      --fee-constant $FEE_CONSTANT \
+      --fee-coefficient $FEE_COEFFICIENT \
+      --fee-pool-registration $FEE_POOL_REGISTRATION \
+      --staging "$STAGING_FILE"
+    TRANSACTION_ID=$(jcli transaction data-for-witness --staging "$STAGING_FILE")
+    WITNESS_SECRET_FILE="''${TMPDIR}/witness.secret.$$"
+    WITNESS_OUTPUT_FILE="''${TMPDIR}/witness.out.$$"
+
+    printf "%s" "$(cat $SOURCE)" > "$WITNESS_SECRET_FILE"
+
+    echo "The transaction will be posted to the blockchain with genesis hash:"
+    echo "  $BLOCK0_HASH"
+    jcli transaction make-witness "$TRANSACTION_ID" \
+        --genesis-block-hash "$BLOCK0_HASH" \
+        --type "account" --account-spending-counter "$SOURCE_COUNTER" \
+        "$WITNESS_OUTPUT_FILE" "$WITNESS_SECRET_FILE"
+    jcli transaction add-witness "$WITNESS_OUTPUT_FILE" --staging "$STAGING_FILE"
+
+    rm "$WITNESS_SECRET_FILE" "$WITNESS_OUTPUT_FILE"
+
+    # Finalize the transaction and send it
+    echo -ne "The id for this certificate send transaction is:\n  "
+    jcli transaction seal --staging "$STAGING_FILE"
+    jcli transaction auth --staging "$STAGING_FILE" -k "$SOURCE"
+    jcli transaction to-message --staging "$STAGING_FILE" | jcli rest v0 message post -h "$JORMUNGANDR_RESTAPI_URL"
+
+    rm "$STAGING_FILE"
+  '';
+  sendDelegation = pkgs.writeShellScriptBin "send-delegation" ''
     set -euo pipefail
 
     export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli jq coreutils curl gnused gnugrep ])}
@@ -406,9 +520,9 @@ in let
     settings=$(curl -s "''${JORMUNGANDR_RESTAPI_URL}/v0/settings")
     FEE_CONSTANT=$(echo "$settings" | jq -r .fees.constant)
     FEE_COEFFICIENT=$(echo "$settings" | jq -r .fees.coefficient)
-    FEE_CERTIFICATE=$(echo "$settings" | jq -r .fees.certificate)
+    FEE_CERTIFICATE_STAKE_DELEGATION=$(echo "$settings" | jq -r .fees.per_certificate_fees.certificate_stake_delegation)
     BLOCK0_HASH=$(echo "$settings" | jq -r .block0Hash)
-    AMOUNT_WITH_FEES=$((FEE_CONSTANT + FEE_COEFFICIENT + FEE_CERTIFICATE))
+    AMOUNT_WITH_FEES=$((FEE_CONSTANT + FEE_COEFFICIENT + FEE_CERTIFICATE_STAKE_DELEGATION))
     TMPDIR="$(mktemp -d)"
     STAGING_FILE="''${TMPDIR}/staging.$$.transaction"
     SOURCE_PK=$(echo "$(cat $SOURCE)" | jcli key to-public)
@@ -438,7 +552,7 @@ in let
     # Finalize the transaction and send it
     echo -ne "The id for this certificate send transaction is:\n  "
     jcli transaction seal --staging "$STAGING_FILE"
-    lcli transaction auth --staging "$STAGING_FILE" -k "$SOURCE"
+    jcli transaction auth --staging "$STAGING_FILE" -k "$SOURCE"
     jcli transaction to-message --staging "$STAGING_FILE" | jcli rest v0 message post -h "$JORMUNGANDR_RESTAPI_URL"
 
     rm "$STAGING_FILE"
@@ -491,8 +605,9 @@ in let
         jormungandr
         jcli
         createStakePool
+        sendPoolRegistration
         sendFunds
-        sendCertificate
+        sendDelegation
         delegateStake
         checkTxStatus
         runJormungandr
@@ -524,7 +639,8 @@ in let
         echo "Available Testnet helper scripts:"
         echo " - send-funds"
         echo " - delegate-stake"
-        echo " - send-certificate"
+        echo " - send-pool-registration"
+        echo " - send-delegation"
         echo " - check-tx-status"
         echo " - create-stake-pool"
         echo
@@ -542,5 +658,5 @@ in let
   in { inherit testnet devops bootstrap; };
 in {
   inherit shells runJormungandr runJormungandrSnappy createStakePool sendFunds
-          sendCertificate delegateStake janalyze checkTxStatus packages;
+          sendDelegation delegateStake janalyze checkTxStatus packages sendPoolRegistration;
 }
