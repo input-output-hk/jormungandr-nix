@@ -22,7 +22,7 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = (import ../lib.nix).pkgs.jormungandr;
+        default = (import ../lib.nix).packages.release.jormungandr;
         defaultText = "jormungandr";
         description = ''
           The jormungandr package that should be used.
@@ -31,7 +31,7 @@ in {
 
       jcliPackage = mkOption {
         type = types.package;
-        default = (import ../lib.nix).pkgs.jormungandr-cli;
+        default = (import ../lib.nix).packages.release.jcli;
         defaultText = "jormungandr-cli";
         description = ''
           The jormungandr-cli package that should be used.
@@ -129,6 +129,31 @@ in {
         description = ''
           the list of nodes to connect to in order to bootstrap the p2p topology
           (and bootstrap our local blockchain).
+        '';
+      };
+
+      policyQuarantineDuration = mkOption {
+        type = types.str;
+        default = "30m";
+        description = ''
+          Time a node is quarantined before being allowed to reconnect
+        '';
+      };
+
+      maxUnreachableNodes = mkOption {
+        type = types.int;
+        default = 20;
+        description = ''
+          Number of nodes that aren't public we will allow our node to connect
+        '';
+      };
+
+      topologyForceResetInterval = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = ''
+          Force reset topology at an interval
+          WARNING: do not change unless you know what you're doing
         '';
       };
 
@@ -277,6 +302,12 @@ in {
             topics_of_interest = cfg.topicsOfInterest;
             listen_address = cfg.listenAddress;
             max_connections = cfg.maxConnections;
+            policy = {
+              quarantine_duration = cfg.policyQuarantineDuration;
+            };
+            max_unreachable_nodes_to_connect_per_event = cfg.maxUnreachableNodes;
+          } // optionalAttrs (cfg.topologyForceResetInterval != null) {
+            topology_force_reset_interval = cfg.topologyForceResetInterval;
           };
         } // optionalAttrs cfg.enableExplorer {
           explorer = {
