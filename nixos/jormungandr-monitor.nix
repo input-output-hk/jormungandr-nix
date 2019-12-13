@@ -3,6 +3,8 @@
 let
   cfg = config.services.jormungandr-monitor;
   cfgJormungandr = config.services.jormungandr;
+  commonLib = import ../lib.nix;
+  environments = commonLib.environments;
   genesisAddresses = let
     inherit (builtins) fromJSON elemAt filter readFile;
     genesis = fromJSON (readFile cfg.genesisYaml);
@@ -17,6 +19,14 @@ in {
     services.jormungandr-monitor = {
       enable = mkEnableOption "jormungandr monitor";
 
+      environment = mkOption {
+        type = types.str;
+        default = "itn_rewards_v1";
+        description = ''
+          Environment in jormungandrLib to pull configuration from.
+        '';
+      };
+
       monitorAddresses = mkOption {
         type = types.listOf types.str;
         default = [ ];
@@ -24,7 +34,7 @@ in {
 
       jcliPackage = mkOption {
         type = types.package;
-        default = (import ../lib.nix).packages.release.jcli;
+        default = environments.${cfg.environment}.packages.jcli;
       };
 
       jormungandrApi = mkOption {

@@ -6,11 +6,21 @@
 with lib;
 let
   cfg = config.services.jormungandr;
+  commonLib = import ../lib.nix;
+  environments = (commonLib).environments;
 in {
   options = {
 
     services.jormungandr = {
       enable = mkEnableOption "jormungandr";
+
+      environment = mkOption {
+        type = types.str;
+        default = "itn_rewards_v1";
+        description = ''
+          Environment in jormungandrLib to pull configuration from.
+        '';
+      };
 
       enableExplorer = mkOption {
         type = types.bool;
@@ -22,7 +32,7 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = (import ../lib.nix).packages.release.jormungandr;
+        default = environments.${cfg.environment}.packages.jormungandr;
         defaultText = "jormungandr";
         description = ''
           The jormungandr package that should be used.
@@ -31,7 +41,7 @@ in {
 
       jcliPackage = mkOption {
         type = types.package;
-        default = (import ../lib.nix).packages.release.jcli;
+        default = environments.${cfg.environment}.packages.jcli;
         defaultText = "jormungandr-cli";
         description = ''
           The jormungandr-cli package that should be used.
@@ -65,7 +75,7 @@ in {
 
       genesisBlockHash = mkOption {
         type = types.nullOr types.str;
-        default = if (cfg.block0 != null) then null else(import ../lib.nix).genesisHash;
+        default = if (cfg.block0 != null) then null else environments.${cfg.environment}.genesisHash;
         description = ''
           Genesis Block Hash
         '';
@@ -125,7 +135,7 @@ in {
             };
           };
         });
-        default = (import ../lib.nix).trustedPeers;
+        default = environments.${cfg.environment}.trustedPeers;
         description = ''
           the list of nodes to connect to in order to bootstrap the p2p topology
           (and bootstrap our local blockchain).
@@ -171,7 +181,7 @@ in {
         default = null;
         description = ''
           the address to listen from and accept connection from.
-          This is the public address that will be distributed to other peers of the network
+          This is the public address that will beenvironments.${cfg.environment} distributed to other peers of the network
           that may find interest into participating to the blockchain dissemination with the node.
         '';
       };
