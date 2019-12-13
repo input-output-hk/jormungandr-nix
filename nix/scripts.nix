@@ -16,6 +16,9 @@
 , pkgs
 , lib
 , niv
+, cardanoWallet
+, rewardsLog ? false
+, enableWallet ? false
 , ...
 }@args:
 let
@@ -87,6 +90,7 @@ in let
     cd ${rootDir}
 
     echo "Starting Jormungandr..."
+    ${lib.optionalString rewardsLog "mkdir -p rewards\nexport JORMUNGANDR_REWARD_DUMP_DIRECTORY=./rewards"}
     jormungandr --genesis-block-hash ${genesisHash} --config ${configFile} ${lib.optionalString staking "--secret ${stakingFile}" }
   '';
   runJormungandrSnappy = pkgs.writeShellScriptBin "run" ''
@@ -613,11 +617,14 @@ in let
         runJormungandr
         janalyze
         niv
+        pkgs.figlet
+        pkgs.lolcat
+        (lib.optional enableWallet cardanoWallet)
       ];
       shellHook = ''
         echo "Jormungandr Testnet" '' + (if color then ''\
-        | ${pkgs.figlet}/bin/figlet -f banner -c \
-        | ${pkgs.lolcat}/bin/lolcat'' else "") + ''
+        | figlet -f banner -c \
+        | lolcat'' else "") + ''
 
         source ${packages.jcli}/scripts/jcli-helpers
       '';

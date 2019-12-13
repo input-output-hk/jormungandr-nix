@@ -1,7 +1,7 @@
 let
   commonLib = import ./lib.nix;
   in with commonLib.lib; with import ./lib.nix;
-{ environment ? "beta"
+{ environment ? "itn_rewards_v1"
 , versionOverride ? null
 , color ? true
 , staking ? false
@@ -10,6 +10,8 @@ let
 , trustedPeers ? null
 , topicsOfInterest ? null
 , customConfig ? {}
+, rewardsLog ? false
+, enableWallet ? false
 , ...
 }@args:
 let
@@ -24,9 +26,10 @@ in let
   genesisHash = if (genesisHash' == null) then commonLib.environments.${customArgs.environment}.genesisHash else genesisHash';
   trustedPeers = if (trustedPeers' == null) then commonLib.environments.${customArgs.environment}.trustedPeers else trustedPeers';
   niv = (import sources.niv {}).niv;
+  cardanoWallet = (import sources.cardano-wallet { gitrev = sources.cardano-wallet.rev; }).cardano-wallet-jormungandr;
   scripts = pkgs.callPackage ./nix/scripts.nix ({
     inherit packages color staking sendLogs genesisHash trustedPeers
-      topicsOfInterest niv;
+      topicsOfInterest niv cardanoWallet;
   } // customArgs);
   explorerFrontend = (import ./explorer-frontend).jormungandr-explorer;
 in {
