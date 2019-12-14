@@ -11,6 +11,18 @@
         "url": "https://github.com/hercules-ci/arion/archive/81a51ae5ea00ee5e62a84bdb0d36fd69b604c5af.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "cardano-wallet": {
+        "branch": "master",
+        "description": "Official Wallet Backend & API for Cardano decentralized",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "cardano-wallet",
+        "rev": "f3576be15de4976e753dea212aa5d44c334bd204",
+        "sha256": "1a2b4iflwwp824b1k9b82jw2q8pqlar6hg96nv03zv55glkgdllm",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/cardano-wallet/archive/f3576be15de4976e753dea212aa5d44c334bd204.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "gitignore": {
         "branch": "master",
         "description": "Nix function for filtering local git sources",
@@ -29,10 +41,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "293ca2c61a23069fd0ffb9054878feec463d4553",
-        "sha256": "02pjjdchx821qzw4v23yirp6lg42bc70zqgd2bxn8p6z4fywxgmx",
+        "rev": "e264317f049fc9fcfcc6e4a3a990266b12fadf9f",
+        "sha256": "1dvjl39fxzxgzln22h1d25kdks17f5mg9c36nhfsb880wvdvdw7k",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/293ca2c61a23069fd0ffb9054878feec463d4553.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/e264317f049fc9fcfcc6e4a3a990266b12fadf9f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "js-chain-libs": {
