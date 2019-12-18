@@ -42,6 +42,12 @@ in {
         default = "http://${cfgJormungandr.rest.listenAddress}/api";
       };
 
+      sleepTime = mkOption {
+        type = types.str;
+        default = "10";
+        description = "The sampling period in seconds.  10 seconds per sample by default.";
+      };
+
       genesisYaml = mkOption {
         type = types.nullOr types.path;
         default = null;
@@ -75,6 +81,7 @@ in {
       environment = {
         PORT = toString cfg.port;
         JORMUNGANDR_API = cfg.jormungandrApi;
+        SLEEP_TIME = cfg.sleepTime;
         MONITOR_ADDRESSES = concatStringsSep " "
           ((optionals (cfg.genesisYaml != null) (
             if (cfg.genesisAddrSelector != null) then

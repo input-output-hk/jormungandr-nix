@@ -7,7 +7,7 @@ from dateutil.parser import parse
 import time, sys, warnings, os, traceback, subprocess, json
 
 EXPORTER_PORT = int(os.getenv('PORT', '8000'), 10)
-SLEEP_TIME = 10
+SLEEP_TIME = int(os.getenv('SLEEP_TIME', '10'), 10)
 JORMUNGANDR_API = os.getenv('JORMUNGANDR_RESTAPI_URL',
                   os.getenv('JORMUNGANDR_API', 'http://127.0.0.1:3101/api'))
 os.environ['JORMUNGANDR_RESTAPI_URL'] = JORMUNGANDR_API

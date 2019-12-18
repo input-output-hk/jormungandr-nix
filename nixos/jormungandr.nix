@@ -159,7 +159,7 @@ in {
       };
 
       topologyForceResetInterval = mkOption {
-        type = types.nullOr types.int;
+        type = types.nullOr types.str;
         default = null;
         description = ''
           Force reset topology at an interval
