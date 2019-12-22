@@ -309,7 +309,7 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print(f'\nRun `{sys.argv[0]} -h` for helpi and usage information\n')
+        print(f'\nRun `{sys.argv[0]} -h` for help and usage information\n')
         exit(0)
 
     parser = argparse.ArgumentParser(description=(
