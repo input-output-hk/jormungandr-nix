@@ -23,7 +23,7 @@ NODE_METRICS = [
     "lastBlockTx",
     "txRecvCnt",
     "uptime",
-    # "connections",
+    "connections",
     "lastBlockEpoch",
     "lastBlockSlot"
 ]
@@ -80,7 +80,10 @@ def process_jormungandr_metrics():
     # Process jcli returned metrics
     metrics = jcli_rest(['node', 'stats', 'get'])
 
-    # metrics['connections'] = len(jcli_rest(['network', 'stats', 'get']))
+    lsof = subprocess.Popen(('lsof', '-nPi', ':3000', '-sTCP:ESTABLISHED'), stdout=subprocess.PIPE)
+    wc = subprocess.check_output(('wc', '-l'), stdin=lsof.stdout)
+    metrics['connections'] = int(wc, 10)
+
 
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
