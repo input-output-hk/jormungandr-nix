@@ -23,7 +23,7 @@ NODE_METRICS = [
     "lastBlockTx",
     "txRecvCnt",
     "uptime",
-    "connections",
+    # "connections",
     "lastBlockEpoch",
     "lastBlockSlot"
 ]
@@ -80,7 +80,7 @@ def process_jormungandr_metrics():
     # Process jcli returned metrics
     metrics = jcli_rest(['node', 'stats', 'get'])
 
-    metrics['connections'] = len(jcli_rest(['network', 'stats', 'get']))
+    # metrics['connections'] = len(jcli_rest(['network', 'stats', 'get']))
 
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
