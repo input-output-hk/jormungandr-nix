@@ -92,8 +92,8 @@ in {
       };
 
       serviceConfig = {
-        User = "jormungandr-monitor";
-        DynamicUser = true;
+        User = "jormungandr";
+        DynamicUser = false;
         StartLimitBurst = 50;
         ExecStart = pkgs.callPackage ./jormungandr-monitor { jormungandr-cli = cfg.jcliPackage; };
         Restart = "always";
