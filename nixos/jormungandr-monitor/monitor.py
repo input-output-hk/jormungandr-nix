@@ -81,7 +81,7 @@ def process_jormungandr_metrics():
     metrics = jcli_rest(['node', 'stats', 'get'])
 
     lsof = subprocess.Popen(
-            ('@lsof@', '-nPi', ':3000', '-sTCP:ESTABLISHED', '-u', 'jormungandr'),
+            ('@lsof@', '-nPi', ':3000', '-sTCP:ESTABLISHED'),
             stdout=subprocess.PIPE)
     wc = subprocess.check_output(('@wc@', '-l'), stdin=lsof.stdout)
     lsof.wait()
