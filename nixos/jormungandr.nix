@@ -22,13 +22,8 @@ in {
         '';
       };
 
-      enableExplorer = mkOption {
-        type = types.bool;
-        default = false;
-        description = ''
-          Enables explorer graphql backend in jormungandr
-        '';
-      };
+      enableExplorer = mkEnableOption "explorer";
+      enableRewardsLog = mkEnableOption "rewards log";
 
       package = mkOption {
         type = types.package;
@@ -326,6 +321,7 @@ in {
         }));
         secretsArgs = concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
+        ${optionalString cfg.enableRewardsLog "mkdir -p /var/lib/${cfg.stateDir}/rewards\nexport JORMUNGANDR_REWARD_DUMP_DIRECTORY=/var/lib/${cfg.stateDir}/rewards"}
         ${optionalString cfg.withBackTraces "RUST_BACKTRACE=full"} exec ${optionalString cfg.withValgrind "${pkgs.valgrind}/bin/valgrind"} ${cfg.package}/bin/jormungandr \
         ${optionalString (cfg.block0 != null) "--genesis-block ${cfg.block0}"} \
         ${optionalString (cfg.genesisBlockHash != null) "--genesis-block-hash ${cfg.genesisBlockHash}"} \
