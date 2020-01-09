@@ -159,7 +159,7 @@ in {
       };
 
       topologyForceResetInterval = mkOption {
-        type = types.nullOr types.int;
+        type = types.nullOr types.str;
         default = null;
         description = ''
           Force reset topology at an interval
@@ -224,7 +224,7 @@ in {
       };
 
       logger.level = mkOption {
-        type = types.enum [ "off" "critical" "error" "warning" "info" "debug" "trace"];
+        type = types.enum [ "off" "critical" "error" "warn" "info" "debug" "trace"];
         default = "info";
         example = "debug";
         description = ''

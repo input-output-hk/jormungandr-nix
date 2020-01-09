@@ -7,25 +7,26 @@ from dateutil.parser import parse
 import time, sys, warnings, os, traceback, subprocess, json
 
 EXPORTER_PORT = int(os.getenv('PORT', '8000'), 10)
-SLEEP_TIME = 10
+SLEEP_TIME = int(os.getenv('SLEEP_TIME', '10'), 10)
 JORMUNGANDR_API = os.getenv('JORMUNGANDR_RESTAPI_URL',
                   os.getenv('JORMUNGANDR_API', 'http://127.0.0.1:3101/api'))
 os.environ['JORMUNGANDR_RESTAPI_URL'] = JORMUNGANDR_API
 ADDRESSES = os.getenv('MONITOR_ADDRESSES', '').split()
 NODE_METRICS = [
     "blockRecvCnt",
+    "connections",
     "lastBlockDate",
+    "lastBlockEpoch",
     "lastBlockFees",
     "lastBlockHash",
     "lastBlockHeight",
+    "lastBlockSlot",
     "lastBlockSum",
     "lastBlockTime",
     "lastBlockTx",
+    "recvq",
     "txRecvCnt",
     "uptime",
-    "connections",
-    "lastBlockEpoch",
-    "lastBlockSlot"
 ]
 PIECE_METRICS = [
     "lastBlockHashPiece1",
@@ -80,7 +81,16 @@ def process_jormungandr_metrics():
     # Process jcli returned metrics
     metrics = jcli_rest(['node', 'stats', 'get'])
 
-    metrics['connections'] = len(jcli_rest(['network', 'stats', 'get']))
+    lsof = subprocess.Popen(
+            ('@lsof@', '-nPi', ':3000', '-sTCP:ESTABLISHED'),
+            stdout=subprocess.PIPE)
+    wc = subprocess.check_output(('@wc@', '-l'), stdin=lsof.stdout)
+    lsof.wait()
+    metrics['connections'] = int(wc, 10)
+
+    ss = subprocess.run(('@ss@', '-plntH', '( sport = :3000 )'), stdout=subprocess.PIPE)
+    recvq = ss.stdout.split()[1]
+    metrics['recvq'] = int(recvq, 10)
 
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
