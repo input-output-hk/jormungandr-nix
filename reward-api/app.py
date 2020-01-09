@@ -56,7 +56,7 @@ def parseEpochRewards(file_name, epoch):
 
 def convertHexPubKey(hex_pub_key, output_format="ed25519"):
     raw_pub_key = binascii.unhexlify(hex_pub_key)
-    bech32_pub_key = bech32.encode("ed25519_pk", 0, raw_pub_key)
+    bech32_pub_key = bech32.bech32_encode("ed25519_pk", bech32.convertbits(raw_pub_key, 8, 5))
     if output_format == "ed25519":
         return bech32_pub_key
     elif output_format == "jcliaddr":
