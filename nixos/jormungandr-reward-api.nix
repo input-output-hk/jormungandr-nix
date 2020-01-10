@@ -36,12 +36,13 @@ in {
 
       environment = let
         penv = python.buildEnv.override {
-          extraLibs = [ python.pkgs.watchdog python.pkgs.setuptools ];
+          extraLibs = with python.pkgs; [ watchdog setuptools requests ];
         };
       in {
         PYTHONPATH = "${penv}/${python.sitePackages}";
         FLASK_APP = reward-api + "/app.py";
         JORMUNGANDR_REWARD_DUMP_DIRECTORY = cfg.dumpDir;
+        JORMUNGANDR_RESTAPI_URL = "http://${config.services.jormungandr.rest.listenAddress}/api";
       };
 
       serviceConfig = {
