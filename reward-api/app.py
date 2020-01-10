@@ -53,12 +53,14 @@ def find_block_epoch(epoch):
     current_block = parse_block(get_block(get_tip()))
     while int(current_block["epoch"]) > int(epoch):
         current_block = parse_block(get_block(current_block["parent"]))
-    if current_block["epoch"] == epoch:
+    if current_block["epoch"] == int(epoch):
         print(current_block["epoch"])
         return current_block
+    print("could not find block")
     return None
 
 def count_pool_blocks_epoch(epoch):
+    print(f"counting blocks for epoch {epoch}")
     global rewards
     current_block = find_block_epoch(epoch)
     while current_block["epoch"] == epoch:
@@ -108,15 +110,41 @@ def parse_block(block):
 def create_app():
     app = Flask(__name__)
 
-    @app.route('/api/rewards/<epoch>')
+    @app.route('/api/rewards/epoch/<epoch>')
     def rewards_epoch(epoch):
         if epoch in rewards:
             return json.dumps(rewards[epoch])
         else:
             abort(404, description=f"No rewards found for epoch {epoch}")
+
     @app.route('/api/rewards/total')
     def rewards_total_api():
         return json.dumps(rewards_total)
+
+    @app.route('/api/rewards/account/<pubkey>')
+    def rewards_account_api(pubkey):
+        if pubkey in rewards_total["accounts"]:
+            data = { "total": rewards_total["accounts"][pubkey] }
+            data["epochs"] = {}
+            for epoch in rewards:
+                if pubkey in rewards[epoch]["accounts"]:
+                    data["epochs"][epoch] = rewards[epoch]["accounts"][pubkey]
+        else:
+            abort(404, description=f"No rewards found for account {pubkey}")
+        return json.dumps(data)
+
+    @app.route('/api/rewards/pool/<poolid>')
+    def rewards_pool_api(poolid):
+        if poolid in rewards_total["pools"]:
+            data = { "total": rewards_total["pools"][poolid] }
+            data["epochs"] = {}
+            for epoch in rewards:
+                if poolid in rewards[epoch]["pools"]:
+                    data["epochs"][epoch] = rewards[epoch]["pools"][poolid]
+
+        else:
+            abort(404, description=f"No rewards found for pool {poolid}")
+        return json.dumps(data)
 
     return app
 
@@ -199,7 +227,12 @@ def parseFileEvent(event):
     _, _, epoch, _ = filename.split('-')
     # rewards are distributed for the previous epoch
     epoch = str(int(epoch) - 1)
-    rewards[epoch] = parseEpochRewards(csvfile, epoch, aggregate=True)
+    aggregate=True
+    try:
+        get_tip()
+    except:
+        aggregate=False
+    rewards[epoch] = parseEpochRewards(csvfile, epoch, aggregate=aggregate)
     end_time = time.time()
     duration = end_time - start_time
     print(f"(watchdog): parsed epoch {epoch} in {duration} seconds")
@@ -227,6 +260,7 @@ for filename in files:
     duration_epoch = end_time_epoch - start_time_epoch
     print(f"(initial startup): parsed epoch {epoch} in {duration_epoch} seconds")
 try:
+    pass
     count_pool_blocks_all()
 except:
     print("API not available to count blocks!")
