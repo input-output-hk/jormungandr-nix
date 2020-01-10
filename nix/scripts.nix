@@ -93,6 +93,21 @@ in let
     ${lib.optionalString rewardsLog "mkdir -p rewards\nexport JORMUNGANDR_REWARD_DUMP_DIRECTORY=./rewards"}
     jormungandr --genesis-block-hash ${genesisHash} --config ${configFile} ${lib.optionalString staking "--secret ${stakingFile}" }
   '';
+  runRewardAPI = let
+    python = pkgs.python3;
+    penv = python.buildEnv.override {
+      extraLibs = with python.pkgs; [ watchdog setuptools requests ];
+    };
+  in pkgs.writeScriptBin "run-reward-api" ''
+    #!${pkgs.runtimeShell}
+
+    set -euo pipefail
+    export PYTHONPATH=${penv}/${python.sitePackages}
+    export JORMUNGANDR_REWARD_DUMP_DIRECTORY=${rootDir}/rewards
+    export JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'${httpHost}'}"
+    export FLASK_APP="''${FLASK_APP:-${pkgs.callPackage ../reward-api {}}/app.py}"
+    ${pkgs.python3Packages.flask}/bin/flask run
+  '';
   runJormungandrSnappy = pkgs.writeShellScriptBin "run" ''
 
     set -euo pipefail
@@ -620,6 +635,7 @@ in let
         pkgs.figlet
         pkgs.lolcat
         (lib.optional enableWallet cardanoWallet)
+        (lib.optional rewardsLog runRewardAPI)
       ];
       shellHook = ''
         echo "Jormungandr Testnet" '' + (if color then ''\
