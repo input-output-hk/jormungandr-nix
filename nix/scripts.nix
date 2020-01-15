@@ -96,7 +96,7 @@ in let
   runRewardAPI = let
     python = pkgs.python3;
     penv = python.buildEnv.override {
-      extraLibs = with python.pkgs; [ watchdog setuptools requests ];
+      extraLibs = with python.pkgs; [ gunicorn watchdog setuptools requests ];
     };
   in pkgs.writeScriptBin "run-reward-api" ''
     #!${pkgs.runtimeShell}
@@ -106,7 +106,7 @@ in let
     export JORMUNGANDR_REWARD_DUMP_DIRECTORY=${rootDir}/rewards
     export JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'${httpHost}'}"
     export FLASK_APP="''${FLASK_APP:-${pkgs.callPackage ../reward-api {}}/app.py}"
-    ${pkgs.python3Packages.flask}/bin/flask run
+    PYTHONPATH=${penv}/${python.sitePackages}:${pkgs.callPackage ../reward-api {}} ${pkgs.python3Packages.gunicorn}/bin/gunicorn -w 4 -b 127.0.0.1:5000 wsgi:app
   '';
   runJormungandrSnappy = pkgs.writeShellScriptBin "run" ''
 
