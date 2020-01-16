@@ -96,7 +96,7 @@ in let
   runRewardAPI = let
     python = pkgs.python3;
     penv = python.buildEnv.override {
-      extraLibs = with python.pkgs; [ gunicorn watchdog setuptools requests ];
+      extraLibs = with python.pkgs; [ flask gunicorn watchdog setuptools requests ];
     };
   in pkgs.writeScriptBin "run-reward-api" ''
     #!${pkgs.runtimeShell}
