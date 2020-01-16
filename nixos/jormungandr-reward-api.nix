@@ -23,7 +23,7 @@ in {
 
     dumpDir = mkOption {
       type = types.str;
-      default = "/var/lib/jormungandr/rewards";
+      default = "rewards";
       description = "Jormungandr reward dump directory.";
     };
   };
@@ -36,17 +36,20 @@ in {
 
       environment = let
         penv = python.buildEnv.override {
-          extraLibs = with python.pkgs; [ watchdog setuptools requests ];
+          extraLibs = with python.pkgs; [ flask gunicorn watchdog setuptools requests ];
         };
       in {
-        PYTHONPATH = "${penv}/${python.sitePackages}";
+        PYTHONPATH = "${penv}/${python.sitePackages}:${reward-api}";
         FLASK_APP = reward-api + "/app.py";
         JORMUNGANDR_REWARD_DUMP_DIRECTORY = cfg.dumpDir;
         JORMUNGANDR_RESTAPI_URL = "http://${config.services.jormungandr.rest.listenAddress}/api";
       };
 
       serviceConfig = {
-        ExecStart = "${pkgs.python3Packages.flask}/bin/flask run --host=${cfg.host} --port=${toString cfg.port}";
+        User = "jormungandr";
+        Group = "jormungandr";
+        ExecStart = "${pkgs.python3Packages.gunicorn}/bin/gunicorn -w 4 -b ${cfg.host}:${toString cfg.port} wsgi:app";
+        WorkingDirectory = "/var/lib/jormungandr";
       };
     };
   };
