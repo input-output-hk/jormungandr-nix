@@ -1,0 +1,17 @@
+name: rewards-api
+version: 0.1.0
+
+authors:
+  - Michael Fellinger <michael.fellinger@iohk.io>
+
+targets:
+  rewards:
+    main: src/rewards.cr
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+
+crystal: 0.31.1
+
+license: MIT

@@ -153,6 +153,11 @@ in {
         '';
       };
 
+      gossipInterval = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
+
       topologyForceResetInterval = mkOption {
         type = types.nullOr types.str;
         default = null;
