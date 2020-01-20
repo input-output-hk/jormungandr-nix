@@ -14,8 +14,10 @@ module JormungandrApi
     HTTP::Client.get(url) do |response|
       case response.status
       when HTTP::Status::OK
-        response.body_io.gets_to_end
+        response.consume_body_io
+        return response.body
       else
+        puts "Error querying #{url}: #{response.inspect}"
         raise "Error querying #{url}: #{response.inspect}"
       end
     end
@@ -24,10 +26,11 @@ module JormungandrApi
   def self.graphql(**payload)
     HTTP::Client.post(**graphql_args(payload)) do |response|
       if response.status == HTTP::Status::OK
-        JSON.parse(response.body_io.gets_to_end)
+        response.consume_body_io
+        JSON.parse(response.body)
       else
         pp! response
-        raise response.body_io.gets_to_end
+        raise response.body
       end
     end
   end
@@ -63,10 +66,59 @@ module Rewards
     GRAPHQL
 
     getter id : String
-    getter content : String
+    getter header : Header
+
+    record Header, epoch : UInt32, parent_id : String, pool_id : String do
+      def self.load(id)
+        path = File.join(BLOCK_CACHE_DIRECTORY, "#{id}.bin")
+
+        if File.file?(path) && File.size(path) > 0
+          File.open(path) do |io|
+            parse io
+          end
+        else
+          body = JormungandrApi.get("/block/#{id}")
+          File.write(path, body)
+          parse IO::Memory.new(body)
+        end
+      end
+
+      def self.parse(io)
+        header_size = read16(io)
+        raise "Invalid header size: #{header_size}" unless header_size == 694
+        version = read16(io)
+        content_size = read32(io)
+        epoch = read32(io)
+        slot = read32(io)
+        height = read32(io)
+        content_hash = reads(io)
+        parent_id = reads(io)
+        pool_id = reads(io)
+
+        Header.new(epoch, parent_id, pool_id)
+      end
+
+      private def self.read32(io)
+        io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+      end
+
+      private def self.read16(io)
+        io.read_bytes(UInt16, IO::ByteFormat::BigEndian)
+      end
+
+      private def self.read8(io)
+        io.read_bytes(UInt8, IO::ByteFormat::BigEndian)
+      end
+
+      private def self.reads(io, len = 32)
+        value = Bytes.new(len)
+        io.read_fully(value)
+        value.hexstring
+      end
+    end
 
     def self.tip
-      new JormungandrApi.get("/tip")
+      new(pp! JormungandrApi.get("/tip"))
     end
 
     def self.last_block_of_epoch(epoch)
@@ -81,37 +133,28 @@ module Rewards
     end
 
     def initialize(@id)
-      raise "Invalid id: '#{@id}'" unless id.size == 64
-      @content = fetch_block_content
-      raise "Content too short: #{content.size}" unless content.size >= 232
+      raise "Invalid id: '#{@id}'" unless @id.size == 64
+      @header = Header.load(@id)
+    end
+
+    def epoch
+      header.epoch
+    end
+
+    def parent_id
+      header.parent_id
+    end
+
+    def pool_id
+      header.pool_id
     end
 
     def last_block_of_epoch
       self.class.last_block_of_epoch(epoch)
     end
 
-    def epoch
-      content[16...24].to_i(16)
-    end
-
-    def slot
-      content[24...32].to_i(16)
-    end
-
-    def height
-      content[32...40].to_i(16)
-    end
-
-    def parent_id
-      content[104...168]
-    end
-
     def parent
       self.class.new parent_id unless parent_id == GENESIS
-    end
-
-    def pool
-      content[168...232]
     end
 
     def each_block_until_beginning_of_epoch
@@ -124,24 +167,6 @@ module Rewards
           return
         end
       end
-    end
-
-    def fetch_block_content
-      if File.file?(block_cache_path) && File.size(block_cache_path) > 231
-        File.open(block_cache_path) do |io|
-          slice = Bytes.new(232)
-          io.read_fully(slice)
-          slice.hexstring
-        end
-      else
-        JormungandrApi.get("/block/#{@id}").tap { |block|
-          File.write(block_cache_path, block)
-        }.to_slice.hexstring
-      end
-    end
-
-    private def block_cache_path
-      File.join(BLOCK_CACHE_DIRECTORY, @id)
     end
 
     private def rewards_csv_path
@@ -249,19 +274,23 @@ require "kemal"
 get "/api/rewards/warmup" do
   epochs = (0...Rewards::Block.tip.epoch)
   total = epochs.size
-  done = Channel(Int32).new
+  done = Channel({Int32, Bool}).new
 
   epochs.each do |epoch|
     spawn do
-      next unless block = Rewards::Block.last_block_of_epoch(epoch)
-      block.each_block_until_beginning_of_epoch { |_| }
-      done.send epoch
+      begin
+        next unless block = Rewards::Block.last_block_of_epoch(epoch)
+        block.each_block_until_beginning_of_epoch { |_| }
+        done.send({epoch, true})
+      rescue
+        done.send({epoch, false})
+      end
     end
   end
 
   total.times do |i|
-    epoch = done.receive
-    puts "Finished fetching epoch %04d %04d/%04d" % [epoch, i + 1, total]
+    epoch, success = done.receive
+    puts "Finished fetching epoch %5s %3s %5d/%5d" % [epoch, success ? "ok" : "err", i + 1, total]
   end
 end
 
@@ -271,7 +300,7 @@ get "/api/rewards/epoch/:epoch" do |env|
   if block = Rewards::Block.last_block_of_epoch(epoch)
     result = block.read_csv
     block.each_block_until_beginning_of_epoch do |block_in_epoch|
-      next unless pool = result.pools[block_in_epoch.pool]?
+      next unless pool = result.pools[block_in_epoch.pool_id]?
       pool.add_block_id block_in_epoch.id
     end
     result.to_pretty_json
@@ -306,9 +335,9 @@ get "/api/rewards/total" do
     end
 
     block.each_block_until_beginning_of_epoch do |block_in_epoch|
-      pool_total = pool_totals[block_in_epoch.pool]? || Rewards::Pool.new(0_i64, 0_i64)
+      pool_total = pool_totals[block_in_epoch.pool_id]? || Rewards::Pool.new(0_i64, 0_i64)
       pool_total.add_block_id block_in_epoch.id
-      pool_totals[block_in_epoch.pool] = pool_total
+      pool_totals[block_in_epoch.pool_id] = pool_total
     end
   end
 
@@ -345,8 +374,8 @@ get "/api/rewards/pool/:poolid" do |env|
     next unless block = Rewards::Block.last_block_of_epoch(epoch)
     next unless result = block.read_csv
     block.each_block_until_beginning_of_epoch do |block_in_epoch|
-      next unless block_in_epoch.pool == pool_id
-      result.pools[block_in_epoch.pool].add_block_id block_in_epoch.id
+      next unless block_in_epoch.pool_id == pool_id
+      result.pools[block_in_epoch.pool_id].add_block_id block_in_epoch.id
     end
 
     next unless pool = result.pools[pool_id]?
