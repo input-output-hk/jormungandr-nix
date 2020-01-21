@@ -1,15 +1,20 @@
+# Reward API
+
+A little API to provide information for each epoch, account, and pool regarding
+their rewards blocks, and other accumulated data.
+
 # Usage
 
 1. Using `nix-shell`
 
-```
+```bash
 nix-shell --arg customConfig '{ rewardsLog = true; }'
 ```
 
 2. Using `nixos` module
 
-```
-    services.jormungandr-reward-api.enable = true;
+```nix
+services.jormungandr-reward-api.enable = true;
 ```
 
 # API endpoints
@@ -35,17 +40,18 @@ Fetches all rewards details for a specific pool
 
 Fetches aggregated rewards for blockchain since genesis
 
+## `/api/rewards/warmup`
+
+Used for warming up the cache after a fresh deploy, this will much faster overall than a cold start.
+
 # Development
 
-By default `FLASK_APP` points to nix store. To prevent having to exit the shell and
-re-run the shell for every change, override it to the PATH in the current directory.
+Relevant environment variables:
 
-`FLASK_DEBUG` will reload on the application on every change to the python `app.py`
-although it doesn't always work correctly.
+    JORMUNGANDR_RESTAPI_URL
+    JORMUNGANDR_GRAPHQL_URL
+    JORMUNGANDR_REWARD_DUMP_DIRECTORY
 
-```
-nix-shell --arg customConfig '{ rewardsLog = true; }'
-export FLASK_DEBUG=1
-export FLASK_APP=reward-api/app.py
-run-reward-api
-```
+For development, you can use [watchexec](https://github.com/watchexec/watchexec):
+
+    watchexec -r -- crystal ./src/reward-api.cr

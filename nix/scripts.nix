@@ -53,6 +53,7 @@ in let
         };
       } else logConfig.output);
     }];
+    explorer.enabled = true;
     rest = {
       listen = restListen;
     };
