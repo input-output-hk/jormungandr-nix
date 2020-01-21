@@ -85,7 +85,7 @@ module Rewards
 
       def self.parse(io)
         header_size = read16(io)
-        raise "Invalid header size: #{header_size}" unless header_size == 694
+        raise "Invalid header size: #{header_size}" unless header_size == 694 || header_size == 82
         version = read16(io)
         content_size = read32(io)
         epoch = read32(io)
