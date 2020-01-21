@@ -29,10 +29,10 @@ in let
   cardanoWallet = (import sources.cardano-wallet { gitrev = sources.cardano-wallet.rev; }).cardano-wallet-jormungandr;
   scripts = pkgs.callPackage ./nix/scripts.nix ({
     inherit packages color staking sendLogs genesisHash trustedPeers
-      topicsOfInterest niv cardanoWallet;
+      topicsOfInterest niv cardanoWallet reward-api;
   } // customArgs);
   explorerFrontend = (import ./explorer-frontend).jormungandr-explorer;
 in {
-  inherit niv sources explorerFrontend scripts;
+  inherit niv sources explorerFrontend scripts reward-api;
   inherit (scripts) shells;
 }

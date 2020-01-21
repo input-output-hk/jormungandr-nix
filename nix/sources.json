@@ -83,6 +83,18 @@
         "url": "https://github.com/NixOS/nixpkgs-channels/archive/9bbad4c6254513fa62684da57886c4f988a92092.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "nixpkgs-crystal": {
+        "branch": "nixpkgs-unstable",
+        "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
+        "homepage": "https://github.com/NixOS/nixpkgs",
+        "owner": "nixos",
+        "repo": "nixpkgs-channels",
+        "rev": "8da81465c19fca393a3b17004c743e4d82a98e4f",
+        "sha256": "1f3s27nrssfk413pszjhbs70wpap43bbjx2pf4zq5x2c1kd72l6y",
+        "type": "tarball",
+        "url": "https://github.com/nixos/nixpkgs-channels/archive/8da81465c19fca393a3b17004c743e4d82a98e4f.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixpkgs-mono": {
         "branch": "nixos-unstable",
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",

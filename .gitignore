@@ -6,3 +6,5 @@ result*
 build
 state-*
 tests/divergence/static/
+rewards/
+reward-api/lib/

@@ -16,6 +16,7 @@ let
   makeSnap = rustPkgs.callPackage ./nix/make-snap.nix {};
   snapcraft = rustPkgs.callPackage ./nix/snapcraft.nix {};
   choco = iohkNix.pkgs.callPackage ./nix/choco.nix { inherit mono; };
+  reward-api = import ./reward-api;
   squashfsTools = rustPkgs.squashfsTools.overrideAttrs (old: {
     patches = old.patches ++ [
       ./nix/0005-add-fstime.patch
@@ -74,7 +75,10 @@ let
   };
 in
 rec {
-  inherit sources iohkNix arionPkgs makeSnap snapcraft snapReviewTools squashfsTools choco genesisHash trustedPeers defaultJormungandrConfig;
+  inherit sources iohkNix arionPkgs makeSnap snapcraft snapReviewTools
+  squashfsTools choco genesisHash trustedPeers defaultJormungandrConfig
+  reward-api;
+
   pkgs = rustPkgs.extend (self: super: {
     uuidgen = if self.stdenv.isLinux
       then super.runCommand "uuidgen" {} ''

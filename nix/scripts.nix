@@ -19,6 +19,7 @@
 , cardanoWallet
 , rewardsLog ? false
 , enableWallet ? false
+, reward-api
 , ...
 }@args:
 let
@@ -52,6 +53,7 @@ in let
         };
       } else logConfig.output);
     }];
+    explorer.enabled = true;
     rest = {
       listen = restListen;
     };
@@ -93,23 +95,17 @@ in let
     ${lib.optionalString rewardsLog "mkdir -p rewards\nexport JORMUNGANDR_REWARD_DUMP_DIRECTORY=./rewards"}
     jormungandr --genesis-block-hash ${genesisHash} --config ${configFile} ${lib.optionalString staking "--secret ${stakingFile}" }
   '';
-  runRewardAPI = let
-    python = pkgs.python3;
-    penv = python.buildEnv.override {
-      extraLibs = with python.pkgs; [ watchdog setuptools requests ];
-    };
-  in pkgs.writeScriptBin "run-reward-api" ''
-    #!${pkgs.runtimeShell}
 
+  runRewardAPI = pkgs.writeShellScriptBin "run-reward-api" ''
     set -euo pipefail
-    export PYTHONPATH=${penv}/${python.sitePackages}
     export JORMUNGANDR_REWARD_DUMP_DIRECTORY=${rootDir}/rewards
-    export JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'${httpHost}'}"
-    export FLASK_APP="''${FLASK_APP:-${pkgs.callPackage ../reward-api {}}/app.py}"
-    ${pkgs.python3Packages.flask}/bin/flask run
+    export JORMUNGANDR_RESTAPI_URL="''${JORMUNGANDR_RESTAPI_URL:-'http://${restListen}/api'}"
+    export JORMUNGANDR_GRAPHQL_URL="''${JORMUNGANDR_GRAPHQL_URL:-'http://${restListen}/explorer/graphql'}"
+    export KEMAL_ENV=production
+    ${reward-api}/bin/reward-api
   '';
-  runJormungandrSnappy = pkgs.writeShellScriptBin "run" ''
 
+  runJormungandrSnappy = pkgs.writeShellScriptBin "run" ''
     set -euo pipefail
 
     export PATH=${lib.makeBinPath (with pkgs; with packages; [ jormungandr jcli coreutils gnused uuidgen jq curl ])}
@@ -681,5 +677,6 @@ in let
   in { inherit testnet devops bootstrap; };
 in {
   inherit shells runJormungandr runJormungandrSnappy createStakePool sendFunds
-          sendDelegation delegateStake janalyze checkTxStatus packages sendPoolRegistration;
+          sendDelegation delegateStake janalyze checkTxStatus packages
+          sendPoolRegistration runRewardAPI;
 }
