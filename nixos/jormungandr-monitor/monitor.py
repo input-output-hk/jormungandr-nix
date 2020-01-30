@@ -27,6 +27,9 @@ NODE_METRICS = [
     "recvq",
     "txRecvCnt",
     "uptime",
+    "peerAvailableCnt",
+    "peerQuarantinedCnt",
+    "peerUnreachableCnt"
 ]
 PIECE_METRICS = [
     "lastBlockHashPiece1",
