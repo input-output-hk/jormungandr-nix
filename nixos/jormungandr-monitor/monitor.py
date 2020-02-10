@@ -84,12 +84,12 @@ def process_jormungandr_metrics():
     # Process jcli returned metrics
     metrics = jcli_rest(['node', 'stats', 'get'])
 
-    lsof = subprocess.Popen(
-            ('@lsof@', '-nPi', ':3000', '-sTCP:ESTABLISHED'),
-            stdout=subprocess.PIPE)
-    wc = subprocess.check_output(('@wc@', '-l'), stdin=lsof.stdout)
-    lsof.wait()
-    metrics['connections'] = int(wc, 10)
+    lsof = subprocess.Popen(('@lsof@', '-nPi', '-sTCP:ESTABLISHED'), stdout=subprocess.PIPE)
+    grep = subprocess.Popen(('@grep@', 'jormungandr'), stdin=lsof.stdout, stdout=subprocess.PIPE)
+    lsof.stdout.close()
+    wc = subprocess.Popen(('@wc@', '-l'), stdin=grep.stdout, stdout=subprocess.PIPE)
+    grep.stdout.close()
+    metrics['connections'] = int(wc.communicate()[0],10)
 
     ss = subprocess.run(('@ss@', '-plntH', '( sport = :3000 )'), stdout=subprocess.PIPE)
     recvq = ss.stdout.split()[1]
