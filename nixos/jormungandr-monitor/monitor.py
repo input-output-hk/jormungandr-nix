@@ -4,7 +4,12 @@ from prometheus_client import Gauge
 from prometheus_client import Summary
 from prometheus_client import start_http_server
 from dateutil.parser import parse
-import time, sys, warnings, os, traceback, subprocess, json
+from systemd.journal import JournalHandler
+import time, sys, warnings, os, traceback, subprocess, json, logging
+
+log = logging.getLogger('jormungandr-monitor')
+log.addHandler(JournalHandler())
+log.setLevel(logging.INFO)
 
 EXPORTER_PORT = int(os.getenv('PORT', '8000'), 10)
 SLEEP_TIME = int(os.getenv('SLEEP_TIME', '10'), 10)
@@ -101,14 +106,14 @@ def process_jormungandr_metrics():
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
     except:
-        print(f'failed to parse lastBlockTime')
+        log.info(f'failed to parse lastBlockTime')
         metrics['lastBlockTime'] = NaN
 
     try:
         metrics['lastBlockEpoch'] = metrics['lastBlockDate'].split('.')[0]
         metrics['lastBlockSlot'] = metrics['lastBlockDate'].split('.')[1]
     except:
-        print(f'failed to parse lastBlockDate into pieces')
+        log.info(f'failed to parse lastBlockDate into pieces')
 
     for metric, gauge in jormungandr_metrics.items():
         gauge.set(sanitize(metrics[metric]))
@@ -124,7 +129,7 @@ def process_jormungandr_metrics():
         for metric, gauge in jormungandr_pieces.items():
             gauge.set(sanitize(blockHashPieces[metric]))
     except:
-        print(f'failed to parse lastBlockHash pieces')
+        log.info(f'failed to parse lastBlockHash pieces')
         for gauge in jormungandr_pieces.values():
             gauge.set(NaN)
 
@@ -165,17 +170,17 @@ def jcli_rest(args):
 
 if __name__ == '__main__':
     # Start up the server to expose the metrics.
-    print(f"Starting metrics at http://localhost:{EXPORTER_PORT}")
+    log.info(f"Starting metrics at http://localhost:{EXPORTER_PORT}")
     start_http_server(EXPORTER_PORT)
     # Main Loop: Process all API's and sleep for a certain amount of time
     while True:
         try:
             process_jormungandr_metrics()
             process_jormungandr_addresses()
-            print("Publishing metrics...")
+            log.info("Publishing metrics...")
         except:
             traceback.print_exc(file=sys.stdout)
-            print("failed to process jormungandr metrics")
+            log.info("failed to process jormungandr metrics")
             for d in to_reset:
                 for gauge in d.values():
                     gauge.set(NaN)
