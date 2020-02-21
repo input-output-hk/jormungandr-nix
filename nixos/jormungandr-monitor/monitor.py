@@ -92,8 +92,11 @@ def process_jormungandr_metrics():
     metrics['connections'] = int(wc.communicate()[0],10)
 
     ss = subprocess.run(('@ss@', '-plntH', '( sport = :3000 )'), stdout=subprocess.PIPE)
-    recvq = ss.stdout.split()[1]
-    metrics['recvq'] = int(recvq, 10)
+    try:
+        recvq = ss.stdout.split()[1]
+        metrics['recvq'] = int(recvq, 10)
+    except:
+        metrics['recvq'] = NaN
 
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()

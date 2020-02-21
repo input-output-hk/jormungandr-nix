@@ -160,6 +160,22 @@ in {
         description = "Gossip interval";
       };
 
+      maxBootstrapAttempts = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        example = 20;
+        description = ''
+          The number of times to retry bootstrapping from trusted peers.
+          If not set, default beavior, the bootstrap process will keep retrying indefinitely,
+          until completed successfully. If set to 0 (zero), the node will skip bootstrap all
+          together -- even if trusted peers are defined. If the node fails to bootstrap from
+          any of the trusted peers and the number of bootstrap retry attempts is exceeded,
+          then the node will continue to run without completing the bootstrap process. This
+          will allow the node to act as the first node in the p2p network (i.e. genesis node),
+          or immediately begin gossip with the trusted peers if any are defined.
+        '';
+      };
+
       topologyForceResetInterval = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -322,6 +338,8 @@ in {
             topology_force_reset_interval = cfg.topologyForceResetInterval;
           } // optionalAttrs (cfg.gossipInterval != null) {
             gossip_interval = cfg.gossipInterval;
+          } // optionalAttrs (cfg.maxBootstrapAttempts != null) {
+            max_bootstrap_attempts = cfg.maxBootstrapAttempts;
           };
         } // optionalAttrs cfg.enableExplorer {
           explorer = {
