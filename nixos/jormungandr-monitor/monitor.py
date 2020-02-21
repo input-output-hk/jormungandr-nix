@@ -172,6 +172,7 @@ if __name__ == '__main__':
         try:
             process_jormungandr_metrics()
             process_jormungandr_addresses()
+            print("Publishing metrics...")
         except:
             traceback.print_exc(file=sys.stdout)
             print("failed to process jormungandr metrics")
