@@ -101,14 +101,14 @@ def process_jormungandr_metrics():
     try:
         metrics['lastBlockTime'] = parse(metrics['lastBlockTime']).timestamp()
     except:
-        print(f'failed to parse lastBlockTime: {metrics["lastBlockTime"]}')
+        print(f'failed to parse lastBlockTime')
         metrics['lastBlockTime'] = NaN
 
     try:
         metrics['lastBlockEpoch'] = metrics['lastBlockDate'].split('.')[0]
         metrics['lastBlockSlot'] = metrics['lastBlockDate'].split('.')[1]
     except:
-        print(f'failed to parse lastBlockDate into pieces: {metrics["lastBlockDate"]}')
+        print(f'failed to parse lastBlockDate into pieces')
 
     for metric, gauge in jormungandr_metrics.items():
         gauge.set(sanitize(metrics[metric]))
@@ -124,7 +124,7 @@ def process_jormungandr_metrics():
         for metric, gauge in jormungandr_pieces.items():
             gauge.set(sanitize(blockHashPieces[metric]))
     except:
-        print(f'failed to parse lastBlockHash pieces: {metrics["lastBlockHash"]}')
+        print(f'failed to parse lastBlockHash pieces')
         for gauge in jormungandr_pieces.values():
             gauge.set(NaN)
 
