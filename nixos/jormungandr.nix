@@ -92,6 +92,32 @@ in {
         '';
       };
 
+      skipBootstrap = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Allow to run as a self-node
+        '';
+      };
+
+      bootstrapFromTrustedPeers = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Pull initial blocks directly from trusted peers instead of fetching a
+          list of known peers and bootstrapping from them.
+        '';
+      };
+
+      httpFetchBlock0Service = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "https://github.com/input-output-hk/jormungandr-block0/raw/master/data/";
+        description = ''
+          Bootstrap the larger than normal block0 from a HTTP url
+        '';
+      };
+
       topicsOfInterest.messages = mkOption {
         type = types.str;
         default = "low";
@@ -341,11 +367,14 @@ in {
           } // optionalAttrs (cfg.maxBootstrapAttempts != null) {
             max_bootstrap_attempts = cfg.maxBootstrapAttempts;
           };
+
+          bootstrap_from_trusted_peers = cfg.bootstrapFromTrustedPeers;
+          skip_bootstrap = cfg.skipBootstrap;
         } // optionalAttrs cfg.enableExplorer {
-          explorer = {
-            enabled = true;
-          };
-        }));
+          explorer.enabled = true;
+        } // optionalAttrs (cfg.httpFetchBlock0Service != null) {
+          http_fetch_block0_service = cfg.httpFetchBlock0Service;
+        } ));
         secretsArgs = concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
         ${optionalString cfg.enableRewardsLog "mkdir -p /var/lib/${cfg.stateDir}/rewards\nexport JORMUNGANDR_REWARD_DUMP_DIRECTORY=/var/lib/${cfg.stateDir}/rewards"}
