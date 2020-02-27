@@ -92,6 +92,32 @@ in {
         '';
       };
 
+      skipBootstrap = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Allow to run as a self-node
+        '';
+      };
+
+      bootstrapFromTrustedPeers = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Pull initial blocks directly from trusted peers instead of fetching a
+          list of known peers and bootstrapping from them.
+        '';
+      };
+
+      httpFetchBlock0Service = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "https://github.com/input-output-hk/jormungandr-block0/raw/master/data/";
+        description = ''
+          Bootstrap the larger than normal block0 from a HTTP url
+        '';
+      };
+
       topicsOfInterest.messages = mkOption {
         type = types.str;
         default = "low";
@@ -156,6 +182,24 @@ in {
       gossipInterval = mkOption {
         type = types.nullOr types.str;
         default = null;
+        example = "10s";
+        description = "Gossip interval";
+      };
+
+      maxBootstrapAttempts = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        example = 20;
+        description = ''
+          The number of times to retry bootstrapping from trusted peers.
+          If not set, default beavior, the bootstrap process will keep retrying indefinitely,
+          until completed successfully. If set to 0 (zero), the node will skip bootstrap all
+          together -- even if trusted peers are defined. If the node fails to bootstrap from
+          any of the trusted peers and the number of bootstrap retry attempts is exceeded,
+          then the node will continue to run without completing the bootstrap process. This
+          will allow the node to act as the first node in the p2p network (i.e. genesis node),
+          or immediately begin gossip with the trusted peers if any are defined.
+        '';
       };
 
       topologyForceResetInterval = mkOption {
@@ -318,12 +362,19 @@ in {
             max_unreachable_nodes_to_connect_per_event = cfg.maxUnreachableNodes;
           } // optionalAttrs (cfg.topologyForceResetInterval != null) {
             topology_force_reset_interval = cfg.topologyForceResetInterval;
+          } // optionalAttrs (cfg.gossipInterval != null) {
+            gossip_interval = cfg.gossipInterval;
+          } // optionalAttrs (cfg.maxBootstrapAttempts != null) {
+            max_bootstrap_attempts = cfg.maxBootstrapAttempts;
           };
+
+          bootstrap_from_trusted_peers = cfg.bootstrapFromTrustedPeers;
+          skip_bootstrap = cfg.skipBootstrap;
         } // optionalAttrs cfg.enableExplorer {
-          explorer = {
-            enabled = true;
-          };
-        }));
+          explorer.enabled = true;
+        } // optionalAttrs (cfg.httpFetchBlock0Service != null) {
+          http_fetch_block0_service = cfg.httpFetchBlock0Service;
+        } ));
         secretsArgs = concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
         ${optionalString cfg.enableRewardsLog "mkdir -p /var/lib/${cfg.stateDir}/rewards\nexport JORMUNGANDR_REWARD_DUMP_DIRECTORY=/var/lib/${cfg.stateDir}/rewards"}
