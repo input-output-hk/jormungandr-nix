@@ -24,6 +24,7 @@ in {
 
       enableExplorer = mkEnableOption "explorer";
       enableRewardsLog = mkEnableOption "rewards log";
+      enableRewardsReportAll = mkEnableOption "rewards report";
 
       package = mkOption {
         type = types.package;
@@ -381,6 +382,7 @@ in {
         ${optionalString cfg.withBackTraces "RUST_BACKTRACE=full"} exec ${optionalString cfg.withValgrind "${pkgs.valgrind}/bin/valgrind"} ${cfg.package}/bin/jormungandr \
         ${optionalString (cfg.block0 != null) "--genesis-block ${cfg.block0}"} \
         ${optionalString (cfg.genesisBlockHash != null) "--genesis-block-hash ${cfg.genesisBlockHash}"} \
+        ${optionalString cfg.enableRewardsReportAll "--rewards-report-all"} \
         --config ${configJson}${secretsArgs}
       '';
       serviceConfig = {
