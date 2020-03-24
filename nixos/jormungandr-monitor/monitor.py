@@ -20,6 +20,7 @@ ADDRESSES = os.getenv('MONITOR_ADDRESSES', '').split()
 NODE_METRICS = [
     "blockRecvCnt",
     "connections",
+    "lastBlockContentSize",
     "lastBlockDate",
     "lastBlockEpoch",
     "lastBlockFees",
@@ -29,11 +30,13 @@ NODE_METRICS = [
     "lastBlockSum",
     "lastBlockTime",
     "lastBlockTx",
+    "peerAvailableCnt",
+    "peerConnectedCnt",
+    "peerQuarantinedCnt",
+    "peerTotalCnt",
     "recvq",
     "txRecvCnt",
     "uptime",
-    "peerAvailableCnt",
-    "peerQuarantinedCnt",
     "peerUnreachableCnt"
 ]
 PIECE_METRICS = [
