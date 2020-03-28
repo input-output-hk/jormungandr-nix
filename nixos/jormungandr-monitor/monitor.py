@@ -119,6 +119,8 @@ def process_jormungandr_metrics():
         log.info(f'failed to parse lastBlockDate into pieces')
 
     for metric, gauge in jormungandr_metrics.items():
+        if metric not in metrics:
+            metrics[metric] = NaN
         gauge.set(sanitize(metrics[metric]))
 
     # Process pieced metrics from jcli parent metrics

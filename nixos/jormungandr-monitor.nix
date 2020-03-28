@@ -77,6 +77,7 @@ in {
     systemd.services.jormungandr-monitor = {
       wantedBy = [ "multi-user.target" ];
       after = [ "jormungandr.service" ];
+      startLimitIntervalSec = 0;
 
       environment = {
         PORT = toString cfg.port;
