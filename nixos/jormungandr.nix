@@ -1,13 +1,29 @@
-{ config
-, pkgs
-, lib
-, ... }:
+{ config, pkgs, lib, ... }:
 
 with lib;
 let
   cfg = config.services.jormungandr;
   commonLib = import ../lib.nix;
   environments = (commonLib).environments;
+
+  peerType = types.submodule {
+    options = {
+      address = mkOption {
+        type = types.str;
+        description = ''
+          IP address in the format of:
+          /ip4/127.0.0.1/tcp/8080 or /ip6/::1/tcp/8080
+        '';
+      };
+
+      id = mkOption {
+        type = types.str;
+        description = ''
+          public key of the node
+        '';
+      };
+    };
+  };
 in {
   options = {
 
@@ -24,6 +40,7 @@ in {
 
       enableExplorer = mkEnableOption "explorer";
       enableRewardsLog = mkEnableOption "rewards log";
+      enableRewardsReportAll = mkEnableOption "full rewards api";
 
       package = mkOption {
         type = types.package;
@@ -70,7 +87,10 @@ in {
 
       genesisBlockHash = mkOption {
         type = types.nullOr types.str;
-        default = if (cfg.block0 != null) then null else environments.${cfg.environment}.genesisHash;
+        default = if (cfg.block0 != null) then
+          null
+        else
+          environments.${cfg.environment}.genesisHash;
         description = ''
           Genesis Block Hash
         '';
@@ -85,7 +105,7 @@ in {
 
       secrets-paths = mkOption {
         type = types.listOf types.str;
-        default = [];
+        default = [ ];
         example = [ "/var/lib/keys/faucet-key.yaml" ];
         description = ''
           Path to secret yaml.
@@ -112,7 +132,8 @@ in {
       httpFetchBlock0Service = mkOption {
         type = types.nullOr types.str;
         default = null;
-        example = "https://github.com/input-output-hk/jormungandr-block0/raw/master/data/";
+        example =
+          "https://github.com/input-output-hk/jormungandr-block0/raw/master/data/";
         description = ''
           Bootstrap the larger than normal block0 from a HTTP url
         '';
@@ -138,24 +159,7 @@ in {
       };
 
       trustedPeers = mkOption {
-        type = types.listOf (types.submodule {
-          options = {
-            address = mkOption {
-              type = types.str;
-              description = ''
-                IP address in the format of:
-                /ip4/127.0.0.1/tcp/8080 or /ip6/::1/tcp/8080
-              '';
-            };
-
-            id = mkOption {
-              type = types.str;
-              description = ''
-                public key of the node
-              '';
-            };
-          };
-        });
+        type = types.listOf peerType;
         default = environments.${cfg.environment}.trustedPeers;
         description = ''
           the list of nodes to connect to in order to bootstrap the p2p topology
@@ -163,11 +167,43 @@ in {
         '';
       };
 
-      policyQuarantineDuration = mkOption {
+      layers.preferredList.peers = mkOption {
+        type = types.listOf peerType;
+        default = environments.${cfg.environment}.trustedPeers;
+        description = ''
+          this is a special list that allows to connect multiple nodes together
+          without relying on the auto peer discovery. All entries in the
+          preferred list are also whitelisted automatically, so they cannot be
+          quarantined.
+        '';
+      };
+
+      layers.preferredList.viewMax = mkOption {
+        type = types.int;
+        default = 20;
+        description = ''
+          this is the number of entries to show in the view each round the
+          layer will randomly select up to layers.preferredList.viewMax entries
+          from the whole layers.preferredList.peers list of entries.
+        '';
+      };
+
+      policy.quarantineDuration = mkOption {
         type = types.str;
         default = "30m";
         description = ''
           Time a node is quarantined before being allowed to reconnect
+        '';
+      };
+
+      policy.quarantineWhitelist = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        example = [ "/ip4/127.0.0.1/tcp/3000" ];
+        description = ''
+          set a trusted list of peers that will not be quarantined in any
+          circumstance. It should be a list of valid addresses, for example:
+          ["/ip4/127.0.0.1/tcp/3000"]
         '';
       };
 
@@ -260,7 +296,7 @@ in {
 
       rest.cors.allowedOrigins = mkOption {
         type = types.listOf types.str;
-        default = [];
+        default = [ ];
         example = [ "yourhostname.com" ];
         description = ''
           CORS allowed origins
@@ -268,7 +304,8 @@ in {
       };
 
       logger.level = mkOption {
-        type = types.enum [ "off" "critical" "error" "warn" "info" "debug" "trace"];
+        type =
+          types.enum [ "off" "critical" "error" "warn" "info" "debug" "trace" ];
         default = "info";
         example = "debug";
         description = ''
@@ -312,9 +349,7 @@ in {
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = [
-      cfg.jcliPackage
-    ];
+    environment.systemPackages = [ cfg.jcliPackage ];
     users.groups.jormungandr.gid = 10015;
     users.users.jormungandr = {
       description = "Jormungandr node daemon user";
@@ -322,10 +357,15 @@ in {
       group = "jormungandr";
     };
     systemd.services.jormungandr = {
-      description   = "Jormungandr node service";
-      after         = [ "network.target" ];
+      description = "Jormungandr node service";
+      after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       script = let
+        mapPeers = map (peer: {
+          address = peer.address;
+          id = peer.id;
+        });
+
         configJson = builtins.toFile "config.yaml" (builtins.toJSON ({
           storage = "/var/lib/" + cfg.stateDir;
           log = [{
@@ -336,12 +376,13 @@ in {
                 backend = cfg.logger.backend;
                 log_id = cfg.logger.logs-id;
               };
-            } else cfg.logger.output);
+            } else
+              cfg.logger.output);
           }];
 
           rest = {
             listen = cfg.rest.listenAddress;
-          } // optionalAttrs (cfg.rest.cors.allowedOrigins != []) {
+          } // optionalAttrs (cfg.rest.cors.allowedOrigins != [ ]) {
             cors.allowed_origins = cfg.rest.cors.allowedOrigins;
           };
 
@@ -349,17 +390,24 @@ in {
             public_address = cfg.publicAddress;
             public_id = cfg.publicId;
 
-            trusted_peers = map (peer: {
-              address = peer.address;
-              id = peer.id;
-            }) cfg.trustedPeers;
+            trusted_peers = mapPeers cfg.trustedPeers;
+
+            layers = {
+              preferred_list = {
+                view_max = cfg.layers.preferredList.viewMax;
+                peers = mapPeers cfg.layers.preferredList.peers;
+              };
+            };
+
             topics_of_interest = cfg.topicsOfInterest;
             listen_address = cfg.listenAddress;
             max_connections = cfg.maxConnections;
             policy = {
-              quarantine_duration = cfg.policyQuarantineDuration;
+              quarantine_duration = cfg.policy.quarantineDuration;
+              quarantine_whitelist = cfg.policy.quarantineWhitelist;
             };
-            max_unreachable_nodes_to_connect_per_event = cfg.maxUnreachableNodes;
+            max_unreachable_nodes_to_connect_per_event =
+              cfg.maxUnreachableNodes;
           } // optionalAttrs (cfg.topologyForceResetInterval != null) {
             topology_force_reset_interval = cfg.topologyForceResetInterval;
           } // optionalAttrs (cfg.gossipInterval != null) {
@@ -370,17 +418,25 @@ in {
 
           bootstrap_from_trusted_peers = cfg.bootstrapFromTrustedPeers;
           skip_bootstrap = cfg.skipBootstrap;
-        } // optionalAttrs cfg.enableExplorer {
-          explorer.enabled = true;
-        } // optionalAttrs (cfg.httpFetchBlock0Service != null) {
-          http_fetch_block0_service = cfg.httpFetchBlock0Service;
-        } ));
-        secretsArgs = concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
+        } // optionalAttrs cfg.enableExplorer { explorer.enabled = true; }
+          // optionalAttrs (cfg.httpFetchBlock0Service != null) {
+            http_fetch_block0_service = cfg.httpFetchBlock0Service;
+          }));
+        secretsArgs =
+          concatMapStrings (p: " --secret \"${p}\"") cfg.secrets-paths;
       in ''
-        ${optionalString cfg.enableRewardsLog "mkdir -p /var/lib/${cfg.stateDir}/rewards\nexport JORMUNGANDR_REWARD_DUMP_DIRECTORY=/var/lib/${cfg.stateDir}/rewards"}
-        ${optionalString cfg.withBackTraces "RUST_BACKTRACE=full"} exec ${optionalString cfg.withValgrind "${pkgs.valgrind}/bin/valgrind"} ${cfg.package}/bin/jormungandr \
+        ${optionalString cfg.enableRewardsLog ''
+          mkdir -p /var/lib/${cfg.stateDir}/rewards
+          export JORMUNGANDR_REWARD_DUMP_DIRECTORY=/var/lib/${cfg.stateDir}/rewards''}
+        ${optionalString cfg.withBackTraces "RUST_BACKTRACE=full"} exec ${
+          optionalString cfg.withValgrind "${pkgs.valgrind}/bin/valgrind"
+        } ${cfg.package}/bin/jormungandr \
         ${optionalString (cfg.block0 != null) "--genesis-block ${cfg.block0}"} \
-        ${optionalString (cfg.genesisBlockHash != null) "--genesis-block-hash ${cfg.genesisBlockHash}"} \
+        ${optionalString cfg.enableRewardsReportAll "--rewards-report-all"} \
+        ${
+          optionalString (cfg.genesisBlockHash != null)
+          "--genesis-block-hash ${cfg.genesisBlockHash}"
+        } \
         --config ${configJson}${secretsArgs}
       '';
       serviceConfig = {
