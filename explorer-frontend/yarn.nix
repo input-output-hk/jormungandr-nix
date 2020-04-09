@@ -1474,11 +1474,11 @@
       };
     }
     {
-      name = "acorn___acorn_5.7.3.tgz";
+      name = "acorn___acorn_5.7.4.tgz";
       path = fetchurl {
-        name = "acorn___acorn_5.7.3.tgz";
-        url  = "https://registry.yarnpkg.com/acorn/-/acorn-5.7.3.tgz";
-        sha1 = "67aa231bf8812974b85235a96771eb6bd07ea279";
+        name = "acorn___acorn_5.7.4.tgz";
+        url  = "https://registry.yarnpkg.com/acorn/-/acorn-5.7.4.tgz";
+        sha1 = "3e8d8a9947d0599a1796d10225d7432f4a4acf5e";
       };
     }
     {
