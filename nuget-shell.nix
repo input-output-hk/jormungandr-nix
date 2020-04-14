@@ -4,7 +4,8 @@ iohkNix.pkgs.stdenv.mkDerivation {
   name = "nuget-shell";
   buildInputs = [ iohkNix.pkgs.dotnetPackages.Nuget ];
   shellHook = ''
-    export MONO_TLS_PROVIDER=legacy
+    # The MONO_TLS_PROVIDER=legacy may resolve problems pushing to chocolatey; uncomment if needed
+    #export MONO_TLS_PROVIDER=legacy
     export TERM=xterm
     echo "####"
     echo "#### Chocolatey package push via:"
