@@ -35,7 +35,7 @@ cd unsigned
 version="${version}"
 
 # Download the latest release and verify the sha hash is correct per the `windows/default.nix` file
-nix-prefetch-url https://github.com/input-output-hk/jormungandr/releases/download/v${version}/jormungandr-v${version}-x86_64-pc-windows-gnu.zip
+nix-prefetch-url https://github.com/input-output-hk/jormungandr/releases/download/v${version}/jormungandr-v${version}-x86_64-pc-windows-gnu-generic.zip
 
 # Unzip
 nix run nixpkgs.unzip -c unzip $NIX_STORE_PATH_TO_ZIP
