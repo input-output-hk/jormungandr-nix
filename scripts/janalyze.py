@@ -66,7 +66,7 @@ def aggregateall():
         lowestEpoch = block['epoch']
 
     if args.aggregateall > 0:
-        print(f'\nJormungandr Block Aggregate for epochs {lowestEpoch + 1} -  {currentEpoch}:\n')
+        print(f'\nJormungandr Block Aggregate for epochs {lowestEpoch + 1} - {currentEpoch}:\n')
     else:
         print('\nJormungandr Overall Block Aggregate:\n')
 
@@ -191,11 +191,18 @@ def distribution(silent=False):
             print(f'{"TotalPercentStaked:":<21}{totalPercentStaked * 100:.2f}%\n')
             headers = [f'EPOCH {epoch}, Pool (Node ID)', "Stake (ADA)", "Percent (%)"]
             table = []
+            otherRecord=[0,0,0]
             for pool, poolData in pools.items():
                 if pool != 'stats':
                     if args.nozero == False or poolData['stake'] != 0:
-                        record = [ pool, poolData['stake'] / 1e6, poolData['percent'] ]
-                        table.append(record)
+                        if args.dust is not None and (poolData['stake'] < args.dust * 1e6 ):
+                            otherRecord = [x + y for x, y in zip(otherRecord, [1,float(poolData['stake'] / 1e6),float(0 if poolData['percent'] is None else poolData['percent'])])]
+                        else:
+                            record = [ pool, poolData['stake'] / 1e6, poolData['percent'] ]
+                            table.append(record)
+            if otherRecord[0]>0:
+                otherRecord[0]="Other " + str(otherRecord[0]) + " pools with < " + str(args.dust) + " ADA in each"
+                table.append(otherRecord)
             if args.bigvaluesort == True:
                 print(f'{tabulate(sorted(table, key=lambda x: x[1], reverse=True), headers, tablefmt="psql", floatfmt=("%s", "0.6f"))}\n\n')
             else:
@@ -236,11 +243,18 @@ def crossref():
         print(f'{"TotalPercentStaked:":<21}{crossref["stats"]["totalpercentstaked"] * 100:.2f}%\n')
         headers = [f'EPOCH {epoch}, Pool (Node ID)', "Stake (ADA)", "Blocks (#)", "PercentStaked (%)", "PercentBlocks (%)"]
         table = []
+        otherRecord=[0,0,0,0,0]
         for pool, poolData in crossref.items():
             if pool != 'stats':
                 if args.nozero == False or (not (poolData['stake'] == 0 and poolData['blocks'] == None)):
-                    record = [ pool, poolData['stake'] / 1e6, poolData['blocks'], poolData['percent'], poolData['percentBlocks'] ]
-                    table.append(record)
+                    if args.dust is not None and (poolData['stake'] < args.dust * 1e6 ):
+                        otherRecord = [x + y for x, y in zip(otherRecord, [1,float(poolData['stake'] / 1e6),int(0 if poolData['blocks'] is None else poolData['blocks']),float(0 if poolData['percent'] is None else poolData['percent']), float(0 if poolData['percentBlocks'] is None else poolData['percentBlocks'])])]
+                    else:
+                        record = [ pool, poolData['stake'] / 1e6, poolData['blocks'], poolData['percent'], poolData['percentBlocks'] ]
+                        table.append(record)
+        if otherRecord[0]>0:
+            otherRecord[0]="Other " + str(otherRecord[0]) + " pools with < " + str(args.dust) + " ADA in each"
+            table.append(otherRecord)
         if args.bigvaluesort == True:
             print(f'{tabulate(sorted(table, key=lambda x: x[1], reverse=True), headers, tablefmt="psql", floatfmt=("%s", "0.6f", "g", "g", "g"))}\n\n')
         else:
@@ -327,6 +341,9 @@ if __name__ == "__main__":
 
     parser.add_argument("-d", "--distribution", action="store_true",
                         help="Calculate the stake distribution for the current epoch only")
+
+    parser.add_argument("-u", "--dust", nargs="?", metavar="X", type=check_int, const=1,
+                        help="Combine dust pools with less than X ADA stake (default = 1 ADA)")
 
     parser.add_argument("-f", "--full", action="store_true",
                         help="Calculate the full epoch history where possible")
