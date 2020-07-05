@@ -251,7 +251,7 @@ in let
       cp "$PRIVATE_KEY_PATH" ''${TICKER}_owner_wallet.prv
     fi
     jcli key to-public < ''${TICKER}_owner_wallet.prv > ''${TICKER}_owner_wallet.pub
-    jcli address account "$(cat ''${TICKER}_owner_wallet.pub)" --testing > ''${TICKER}_owner_wallet.address
+    jcli address account "$(cat ''${TICKER}_owner_wallet.pub)" --prefix=addr --testing > ''${TICKER}_owner_wallet.address
 
     jcli key generate --type=SumEd25519_12 > ''${TICKER}_kes.prv
     jcli key to-public < ''${TICKER}_kes.prv > ''${TICKER}_kes.pub
