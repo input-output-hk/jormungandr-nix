@@ -38,6 +38,8 @@ NODE_METRICS = [
     "txRecvCnt",
     "uptime",
     "peerUnreachableCnt"
+    "votesCast",
+    "txPending"
 ]
 PIECE_METRICS = [
     "lastBlockHashPiece1",
@@ -117,6 +119,19 @@ def process_jormungandr_metrics():
         metrics['lastBlockSlot'] = metrics['lastBlockDate'].split('.')[1]
     except:
         log.info(f'failed to parse lastBlockDate into pieces')
+
+    vote_plans = jcli_rest(['vote', 'active', 'plans', 'get'])
+    metrics['votesCast'] = 0
+    for vote_plan in vote_plans:
+        for proposal in vote_plan['proposals']:
+            metrics['votesCast'] += int(proposal['votes_cast'])
+
+
+    metrics['txPending'] = 0
+    fragment_logs = jcli_rest(['message', 'logs'])
+    for fragment in fragment_logs:
+        if "Pending" in fragment['status']:
+            metrics['txPending'] += 1
 
     for metric, gauge in jormungandr_metrics.items():
         if metric not in metrics:
